@@ -12,8 +12,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# 设置工作目录（重要：必须是 backend 目录才能正确导入模块）
-WORKDIR /app/backend
+# 设置工作目录为项目根目录
+WORKDIR /app
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,17 +27,18 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir gunicorn==21.2.0
 
-# 复制应用代码到正确位置
-COPY backend/ ./
-COPY ../frontend/ ./frontend/
-COPY ../rider-contract-sign.html ./
-COPY ../gunicorn.conf.py ./
+# 复制所有应用代码（使用绝对路径，不用 ../）
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
+COPY rider-contract-sign.html ./
+COPY gunicorn.conf.py ./
 
 # 创建必要的目录
-RUN mkdir -p uploads logs
+RUN mkdir -p ./backend/uploads ./backend/logs ./uploads
 
 # 暴露端口
 EXPOSE 5000
 
-# 使用Gunicorn运行生产服务器（在 backend 目录下）
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]
+# 使用Gunicorn运行生产服务器
+# 从 /app 目录启动，指定 backend.app:app
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "backend.app:app"]

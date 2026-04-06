@@ -1,5 +1,14 @@
 import os
+import sys
 import multiprocessing
+
+# =====================================================
+# 关键修复：将 backend 目录添加到 Python 搜索路径
+# 解决 Docker/Railway 环境下的模块导入问题
+# =====================================================
+_backend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend')
+if _backend_path not in sys.path:
+    sys.path.insert(0, _backend_path)
 
 # =====================================================
 # Gunicorn 配置 - 适配 Railway / Docker / 传统部署
