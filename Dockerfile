@@ -1,7 +1,6 @@
 # =====================================================
 # Kunze ERP System - 生产环境Docker配置
-# 构建命令: docker build -t kunze-erp-system .
-# 运行命令: docker run -p 5000:5000 --env-file .env kunze-erp-system
+# 适用于: Railway / Docker / 本地部署
 # =====================================================
 
 # 阶段1：基础镜像
@@ -23,14 +22,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件并安装Python包
+# 复制依赖文件并安装Python包（包含 gunicorn）
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn==21.2.0
 
 # 复制应用代码
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY rider-contract-sign.html ./
+COPY gunicorn.conf.py ./
 
 # 创建必要的目录
 RUN mkdir -p /app/backend/uploads \
@@ -39,10 +40,6 @@ RUN mkdir -p /app/backend/uploads \
 
 # 暴露端口
 EXPOSE 5000
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')" || exit 1
 
 # 使用Gunicorn运行生产服务器
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "backend.app:app"]
