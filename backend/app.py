@@ -53,6 +53,29 @@ setup_security_headers(app)
 # 提供前端静态文件服务
 from flask import send_from_directory
 
+def _get_mimetype(filename):
+    """根据文件扩展名返回正确的 MIME 类型"""
+    if filename.endswith('.html'):
+        return 'text/html; charset=utf-8'
+    elif filename.endswith('.css'):
+        return 'text/css; charset=utf-8'
+    elif filename.endswith('.js'):
+        return 'application/javascript; charset=utf-8'
+    elif filename.endswith('.json'):
+        return 'application/json; charset=utf-8'
+    elif filename.endswith('.png'):
+        return 'image/png'
+    elif filename.endswith('.jpg') or filename.endswith('.jpeg'):
+        return 'image/jpeg'
+    elif filename.endswith('.gif'):
+        return 'image/gif'
+    elif filename.endswith('.svg'):
+        return 'image/svg+xml'
+    elif filename.endswith('.ico'):
+        return 'image/x-icon'
+    else:
+        return 'application/octet-stream'
+
 @app.route('/uploads/<path:filename>')
 def uploads(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
@@ -72,7 +95,7 @@ def frontend_files(filename):
     root_dir = os.path.dirname(os.path.dirname(__file__))
     root_file = os.path.join(root_dir, filename)
     if os.path.isfile(root_file) and (filename.endswith('.html') or filename.endswith('.js') or filename.endswith('.css')):
-        resp = send_from_directory(root_dir, filename)
+        resp = send_from_directory(root_dir, filename, mimetype=_get_mimetype(filename))
         resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
         return resp
 
@@ -80,7 +103,7 @@ def frontend_files(filename):
     frontend_dir = os.path.join(root_dir, 'frontend')
     frontend_file = os.path.join(frontend_dir, filename)
     if os.path.isfile(frontend_file):
-        resp = send_from_directory(frontend_dir, filename)
+        resp = send_from_directory(frontend_dir, filename, mimetype=_get_mimetype(filename))
         resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
         return resp
 
@@ -91,7 +114,12 @@ def frontend_files(filename):
 # 根路径重定向到登录页面
 @app.route('/')
 def index():
-    return send_from_directory(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend'), 'login.html')
+    resp = send_from_directory(
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend'),
+        'login.html',
+        mimetype='text/html; charset=utf-8'
+    )
+    return resp
 
 # 处理favicon.ico请求（消除404错误）
 @app.route('/favicon.ico')
