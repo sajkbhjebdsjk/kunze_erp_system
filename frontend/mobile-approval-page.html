@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>审批 - 移动版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 使用CDN链接加载lucide图标库 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        emerald: '#10b981',
+                        rose: '#f43f5e',
+                        dark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        .glass-header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Content Container -->
+        <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="glass-header px-6 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-display font-bold">审批管理</h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Approval Management</p>
+            </div>
+            <div class="flex gap-3">
+                <div class="relative">
+                    <div id="notification-bell" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-white/10 cursor-pointer">
+                        <i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>
+                        <span id="unread-count" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-xs font-bold">0</span>
+                    </div>
+                    <!-- 通知下拉菜单 -->
+                    <div id="notification-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-white/10 rounded-lg shadow-lg z-50 hidden">
+                        <div class="p-4 border-b border-white/10">
+                            <h3 class="font-bold">通知</h3>
+                        </div>
+                        <div id="notification-list" class="max-h-60 overflow-y-auto">
+                            <!-- 通知列表将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="p-3 border-t border-white/10 text-center">
+                            <button id="mark-all-read" class="text-primary text-sm font-bold">标记全部已读</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="px-6 py-4 flex gap-4 border-b border-white/5 bg-slate-900/40">
+            <button class="text-primary text-sm font-bold border-b-2 border-primary pb-2">待我审批</button>
+            <button class="text-slate-500 text-sm font-bold pb-2 hover:text-slate-300 transition-colors">我发起的</button>
+            <button class="text-slate-500 text-sm font-bold pb-2 hover:text-slate-300 transition-colors">已完成</button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar pb-24" id="approval-list">
+            <!-- 审批列表将通过JavaScript动态生成 -->
+            <div class="flex justify-center items-center h-64">
+                <div class="text-center">
+                    <i data-lucide="loader-2" class="w-12 h-12 text-primary animate-spin mx-auto mb-4"></i>
+                    <p class="text-slate-500">加载中...</p>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Global Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 h-20 flex justify-center items-center z-50 bg-slate-900/90 backdrop-blur-xl border-t border-white/10">
+            <div class="flex justify-between items-center w-full px-6">
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-approval.html'">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">首页</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-primary">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">审批</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-my-page.html'">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">我的</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 transition-all duration-500 z-[100] w-[280px]">
+        <div class="bg-primary/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <p class="text-xs font-bold leading-tight" id="toast-message">操作成功！</p>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let toast;
+        let toastMessage;
+        let toastTimer;
+
+        // 显示Toast通知
+        function showToast(message) {
+            if(!toast || !toastMessage) {
+                toast = document.getElementById('toast');
+                toastMessage = document.getElementById('toast-message');
+            }
+            if(toastTimer) clearTimeout(toastTimer);
+            toastMessage.textContent = message;
+            toast.classList.remove('-translate-y-full', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            toastTimer = setTimeout(() => {
+                toast.classList.add('-translate-y-full', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 2500);
+        }
+
+        // 审批流程
+        function approveFlow(flowId, action) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                showToast('请先登录');
+                return;
+            }
+            
+            // 发送审批请求
+            fetch(`http://localhost:5000/api/flows/${flowId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    approver_id: user.id,
+                    action: action,
+                    comment: ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === '审批成功') {
+                    showToast(action === 'approve' ? '审批通过' : '审批拒绝');
+                    // 刷新审批列表
+                    setTimeout(() => {
+                        loadApprovalList('todo');
+                        // 关闭所有模态框
+                        document.querySelectorAll('.fixed.inset-0').forEach(modal => modal.remove());
+                    }, 1500);
+                } else {
+                    showToast('审批失败: ' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('审批失败:', error);
+                showToast('网络错误，请稍后重试');
+            });
+        }
+
+        // 撤销流程
+        function cancelFlow(flowId) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                showToast('请先登录');
+                return;
+            }
+            
+            if (confirm('确定要撤销此流程吗？')) {
+                // 发送撤销请求
+                fetch(`http://localhost:5000/api/flows/${flowId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        initiator_id: user.id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === '流程撤销成功') {
+                        showToast('流程撤销成功');
+                        // 刷新审批列表
+                        setTimeout(() => {
+                            loadApprovalList('todo');
+                            // 关闭所有模态框
+                            document.querySelectorAll('.fixed.inset-0').forEach(modal => modal.remove());
+                        }, 1500);
+                    } else {
+                        showToast('撤销失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('撤销失败:', error);
+                    showToast('网络错误，请稍后重试');
+                });
+            }
+        }
+
+        // 添加评论
+        // 修改addComment函数，在评论提交后立即发送浏览器通知
+        function addComment(flowId) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                showToast('请先登录');
+                return;
+            }
+            
+            const commentInput = document.getElementById(`comment-input-${flowId}`);
+            const comment = commentInput.value.trim();
+            
+            if (!comment) {
+                showToast('请输入评论内容');
+                return;
+            }
+            
+            // 发送评论请求
+            fetch(`http://localhost:5000/api/flows/${flowId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === '评论成功') {
+                    showToast('评论成功');
+                    // 清空输入框
+                    commentInput.value = '';
+                    // 重新加载评论
+                    loadComments(flowId);
+                    // 加载通知列表，检查是否有新的@提及通知
+                    loadNotifications(true);
+                    // 立即发送浏览器通知
+                    sendBrowserNotification('评论成功', '您的评论已提交');
+                } else {
+                    showToast('评论失败: ' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('评论失败:', error);
+                showToast('网络错误，请稍后重试');
+            });
+        }
+
+        // 加载评论
+        function loadComments(flowId) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                return;
+            }
+            
+            // 发送请求获取评论
+            fetch(`http://localhost:5000/api/flows/${flowId}/comments`)
+                .then(response => response.json())
+                .then(data => {
+                    const commentsContainer = document.getElementById(`comments-${flowId}`);
+                    if (commentsContainer) {
+                        if (data.comments && data.comments.length > 0) {
+                            commentsContainer.innerHTML = '';
+                            data.comments.forEach(comment => {
+                                const commentDiv = document.createElement('div');
+                                commentDiv.className = 'bg-slate-800/50 p-3 rounded-lg';
+                                commentDiv.innerHTML = `
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-sm font-bold">${comment.user_name}</span>
+                                        <span class="text-xs text-slate-500">${comment.created_at}</span>
+                                    </div>
+                                    <p class="text-sm">${comment.comment}</p>
+                                `;
+                                commentsContainer.appendChild(commentDiv);
+                            });
+                        } else {
+                            commentsContainer.innerHTML = '<p class="text-sm text-slate-500">暂无评论</p>';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                });
+        }
+
+        // 隐藏@人员列表
+        function hideUserList() {
+            const userList = document.getElementById('user-list');
+            if (userList) {
+                userList.remove();
+            }
+        }
+
+        // 显示@人员列表
+        function showUserList(input, query) {
+            // 先隐藏现有的列表
+            hideUserList();
+            
+            // 发送请求获取用户列表
+            fetch(`http://localhost:5000/api/users?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.users && data.users.length > 0) {
+                        const userList = document.createElement('div');
+                        userList.className = 'absolute bg-slate-800 border border-white/10 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto';
+                        userList.id = 'user-list';
+                        
+                        // 计算位置
+                        const rect = input.getBoundingClientRect();
+                        userList.style.left = `${rect.left}px`;
+                        userList.style.top = `${rect.bottom + window.scrollY}px`;
+                        userList.style.width = `${rect.width}px`;
+                        
+                        // 添加用户列表项
+                        data.users.forEach(user => {
+                            const userItem = document.createElement('div');
+                            userItem.className = 'px-4 py-2 hover:bg-slate-700 cursor-pointer';
+                            userItem.textContent = user.name;
+                            userItem.onclick = function() {
+                                // 插入@人员到输入框
+                                const inputValue = input.value;
+                                const lastAtIndex = inputValue.lastIndexOf('@');
+                                const newValue = inputValue.substring(0, lastAtIndex + 1) + user.name + ' ';
+                                input.value = newValue;
+                                input.focus();
+                                // 隐藏用户列表
+                                hideUserList();
+                            };
+                            userList.appendChild(userItem);
+                        });
+                        
+                        // 添加到页面
+                        document.body.appendChild(userList);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取用户列表失败:', error);
+                });
+        }
+
+        // 加载审批列表
+        function loadApprovalList(tab = 'todo') {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                // 用户未登录，跳转到登录页面
+                window.location.href = 'mobile-login.html';
+                return;
+            }
+
+            // 调用后端API获取审批数据
+            fetch('http://localhost:5000/api/flows?tab=' + tab + '&user_id=' + user.id)
+                .then(response => response.json())
+                .then(data => {
+                    const approvalList = document.getElementById('approval-list');
+                    if (data.length > 0) {
+                approvalList.innerHTML = '';
+                data.forEach(flow => {
+                    const approvalItem = document.createElement('div');
+                    approvalItem.className = 'bg-slate-800/40 border border-white/5 rounded-[2rem] p-5 active:scale-95 transition-all cursor-pointer';
+                    approvalItem.onclick = function() {
+                        showFlowDetail(flow.flow_id);
+                    };
+                    approvalItem.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex gap-3">
+                                <div class="w-10 h-10 rounded-xl ${flow.type_id === 'onboarding' ? 'bg-emerald-500/10' : flow.type_id === 'offboarding' ? 'bg-rose-500/10' : 'bg-primary/10'} flex items-center justify-center">
+                                    <i data-lucide="${flow.type_id === 'onboarding' ? 'user-plus' : flow.type_id === 'offboarding' ? 'user-minus' : 'clipboard-list'}" class="text-${flow.type_id === 'onboarding' ? 'emerald-500' : flow.type_id === 'offboarding' ? 'rose-500' : 'primary'} w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base">${flow.employee_name} <span class="text-xs font-normal text-slate-500 ml-1">/ ${flow.type_name || flow.type_id}</span></h3>
+                                    <div class="flex items-center gap-1 mt-1">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                                        <span class="text-[10px] text-primary font-bold">等待审批</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-[11px] mb-4 bg-slate-900/30 p-3 rounded-xl">
+                            <div><p class="text-slate-500 mb-1 font-medium">发起人</p><p class="font-semibold text-slate-200">${flow.initiator_name}</p></div>
+                            <div><p class="text-slate-500 mb-1 font-medium">紧急程度</p><span class="text-${flow.priority === 'normal' ? 'emerald' : 'rose'}-400 font-bold opacity-80">${flow.priority === 'normal' ? '常规' : flow.priority === 'urgent' ? '紧急' : '非常紧急'}</span></div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>${flow.updated_at}</span>
+                            <span class="text-primary font-bold flex items-center">处理<i data-lucide="chevron-right" class="w-3 h-3 ml-0.5"></i></span>
+                        </div>
+                    `;
+                    approvalList.appendChild(approvalItem);
+                });
+                    } else {
+                        approvalList.innerHTML = `
+                            <div class="flex justify-center items-center h-64">
+                                <div class="text-center">
+                                    <i data-lucide="inbox" class="w-12 h-12 text-slate-600 mx-auto mb-4"></i>
+                                    <p class="text-slate-500">暂无待审批流程</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载审批列表失败:', error);
+                    const approvalList = document.getElementById('approval-list');
+                    approvalList.innerHTML = `
+                        <div class="flex justify-center items-center h-64">
+                            <div class="text-center">
+                                <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500 mx-auto mb-4"></i>
+                                <p class="text-slate-500">网络错误</p>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+
+        // 显示流程详情
+        function showFlowDetail(flowId) {
+            // 创建详情模态框
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-slate-800/95 border border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">流程详情</h2>
+                            <button class="close-modal w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-700">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="flow-detail-content" class="space-y-4">
+                            <div class="flex justify-center items-center py-8">
+                                <i data-lucide="loader-2" class="w-12 h-12 text-primary animate-spin"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            // 检查lucide是否加载成功
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                console.log('lucide未加载成功');
+            }
+            
+            // 关闭模态框
+            modal.querySelector('.close-modal').addEventListener('click', function() {
+                modal.remove();
+            });
+            
+            // 加载流程详情
+            fetch(`http://localhost:5000/api/flows/${flowId}/detail`)
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('flow-detail-content');
+                    if (data.flow) {
+                        const flow = data.flow;
+                        const steps = data.steps;
+                        const fields = data.fields;
+                        
+                        let stepsHtml = '';
+                        steps.forEach((step, index) => {
+                            stepsHtml += `
+                                <div class="flex gap-4 mb-4">
+                                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                        <span class="text-xs font-bold">${index + 1}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-sm">${step.step_name}</h4>
+                                        <p class="text-xs text-slate-400">审批人: ${step.approver_name}</p>
+                                        <p class="text-xs text-slate-500 mt-1">状态: ${step.status === 'pending' ? '等待审批' : step.status === 'completed' ? '已通过' : step.status === 'rejected' ? '已拒绝' : '已撤销'}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        let fieldsHtml = '';
+                        for (const [fieldName, fieldValue] of Object.entries(fields)) {
+                            // 检查是否是文件字段
+                            const isFileField = fieldName.includes('文件') || fieldName.includes('图片') || fieldName.includes('上传');
+                            if (isFileField && fieldValue) {
+                                // 显示文件链接或图片
+                                fieldsHtml += `
+                                    <div class="mb-3">
+                                        <p class="text-xs text-slate-400">${fieldName}</p>
+                                        <a href="http://localhost:5000/uploads/${fieldValue}" target="_blank" class="text-sm font-semibold text-primary hover:underline">
+                                            查看文件
+                                        </a>
+                                    </div>
+                                `;
+                            } else {
+                                // 显示普通文本字段
+                                fieldsHtml += `
+                                    <div class="mb-3">
+                                        <p class="text-xs text-slate-400">${fieldName}</p>
+                                        <p class="text-sm font-semibold">${fieldValue}</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                        
+                        // 从本地存储获取用户信息
+                        const user = JSON.parse(localStorage.getItem('user'));
+                        const isInitiator = user && user.id == flow.initiator_id;
+                        
+                        content.innerHTML = `
+                            <div class="bg-slate-900/50 border border-white/10 rounded-xl p-4 mb-4">
+                                <h3 class="font-bold mb-2">流程信息</h3>
+                                <p class="text-sm text-slate-400">流程ID: ${flow.flow_id}</p>
+                                <p class="text-sm text-slate-400">流程类型: ${flow.type_name || flow.type_id}</p>
+                                <p class="text-sm text-slate-400">发起人: ${flow.initiator_name}</p>
+                                <p class="text-sm text-slate-400">发起时间: ${flow.created_at}</p>
+                                <p class="text-sm text-slate-400">状态: ${flow.status === 'pending' ? '处理中' : flow.status === 'completed' ? '已完成' : flow.status === 'rejected' ? '已拒绝' : '已撤销'}</p>
+                            </div>
+                            ${fieldsHtml ? `
+                                <div class="bg-slate-900/50 border border-white/10 rounded-xl p-4 mb-4">
+                                    <h3 class="font-bold mb-2">流程字段</h3>
+                                    ${fieldsHtml}
+                                </div>
+                            ` : ''}
+                            <div class="bg-slate-900/50 border border-white/10 rounded-xl p-4 mb-4">
+                                <h3 class="font-bold mb-2">审批步骤</h3>
+                                ${stepsHtml}
+                            </div>
+                            <!-- 评论输入框 -->
+                            <div class="bg-slate-900/50 border border-white/10 rounded-xl p-4 mb-4">
+                                <h3 class="font-bold mb-2">评论</h3>
+                                <div class="flex gap-3">
+                                    <input type="text" id="comment-input-${flowId}" placeholder="输入评论，@人员" class="flex-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition-colors" onclick="addComment('${flowId}')">
+                                        发送
+                                    </button>
+                                </div>
+                                <div id="comments-${flowId}" class="mt-3 space-y-2">
+                                    <!-- 评论将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                ${flow.status === 'pending' ? `
+                                    <div class="flex gap-3">
+                                        <button class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold transition-colors" onclick="approveFlow('${flowId}', 'approve')">
+                                            通过
+                                        </button>
+                                        <button class="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl font-semibold transition-colors" onclick="approveFlow('${flowId}', 'reject')">
+                                            拒绝
+                                        </button>
+                                    </div>
+                                ` : ''}
+                                ${isInitiator && flow.status === 'pending' ? `
+                                    <button class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-semibold transition-colors" onclick="cancelFlow('${flowId}')">
+                                        撤销流程
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        content.innerHTML = `
+                            <div class="flex flex-col items-center justify-center py-8">
+                                <i data-lucide="alert-circle" class="w-12 h-12 text-slate-500 mb-4"></i>
+                                <p class="text-slate-500">暂无流程信息</p>
+                            </div>
+                        `;
+                    }
+                    // 检查lucide是否加载成功
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                console.log('lucide未加载成功');
+            }
+                    // 加载评论
+                    loadComments(flowId);
+                })
+                .catch(error => {
+                    console.error('加载流程详情失败:', error);
+                    const content = document.getElementById('flow-detail-content');
+                    content.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8">
+                            <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500 mb-4"></i>
+                            <p class="text-slate-500">加载失败，请重试</p>
+                        </div>
+                    `;
+                    // 检查lucide是否加载成功
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                console.log('lucide未加载成功');
+            }
+                });
+        }
+
+        // 请求浏览器通知权限
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    console.log('通知权限状态:', permission);
+                    if (permission === 'granted') {
+                        console.log('通知权限已授予');
+                    } else if (permission === 'denied') {
+                        console.log('通知权限已拒绝');
+                    } else {
+                        console.log('通知权限未决定');
+                    }
+                });
+            } else {
+                console.log('浏览器不支持通知');
+            }
+        }
+
+        // 发送浏览器通知
+        function sendBrowserNotification(title, body) {
+            console.log('发送浏览器通知:', title, body);
+            if ('Notification' in window) {
+                console.log('浏览器支持通知');
+                console.log('通知权限状态:', Notification.permission);
+                if (Notification.permission === 'granted') {
+                    console.log('通知权限已授予，发送通知');
+                    try {
+                        new Notification(title, {
+                            body: body,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/3256/3256126.png'
+                        });
+                        console.log('通知发送成功');
+                    } catch (error) {
+                        console.error('通知发送失败:', error);
+                    }
+                } else if (Notification.permission !== 'denied') {
+                    console.log('通知权限未决定，请求权限');
+                    // 如果用户还没有决定，再次请求权限
+                    Notification.requestPermission().then(permission => {
+                        console.log('新的通知权限状态:', permission);
+                        if (permission === 'granted') {
+                            console.log('通知权限已授予，发送通知');
+                            try {
+                                new Notification(title, {
+                                    body: body,
+                                    icon: 'https://cdn-icons-png.flaticon.com/512/3256/3256126.png'
+                                });
+                                console.log('通知发送成功');
+                            } catch (error) {
+                                console.error('通知发送失败:', error);
+                            }
+                        }
+                    });
+                } else {
+                    console.log('通知权限已拒绝，无法发送通知');
+                }
+            } else {
+                console.log('浏览器不支持通知');
+            }
+        }
+
+        // 加载通知列表
+        function loadNotifications(showNotification = false) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                console.log('用户未登录，无法加载通知');
+                return;
+            }
+            
+            console.log('开始加载通知...');
+            console.log('用户ID:', user.id);
+            // 发送请求获取通知
+            fetch(`http://localhost:5000/api/notifications?user_id=${user.id}`)
+                .then(response => {
+                    console.log('响应状态:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('通知数据:', data);
+                    // 确保data存在
+                    if (data) {
+                        // 即使没有notifications字段，也更新未读数量
+                        const unreadCount = data.unread_count || 0;
+                        console.log('未读通知数量:', unreadCount);
+                        const unreadCountElement = document.getElementById('unread-count');
+                        if (unreadCountElement) {
+                            unreadCountElement.textContent = unreadCount;
+                            unreadCountElement.style.display = unreadCount > 0 ? 'flex' : 'none';
+                        }
+                        
+                        // 渲染通知列表
+                        const notificationList = document.getElementById('notification-list');
+                        if (notificationList) {
+                            if (data.notifications && data.notifications.length > 0) {
+                                notificationList.innerHTML = '';
+                                // 检查是否有新的未读通知
+                                const unreadNotifications = data.notifications.filter(notification => !notification.is_read);
+                                console.log('未读通知:', unreadNotifications);
+                                if (showNotification && unreadNotifications.length > 0) {
+                                    // 发送浏览器通知
+                                    console.log('发送浏览器通知');
+                                    sendBrowserNotification('新通知', `您有 ${unreadNotifications.length} 条新通知`);
+                                }
+                                data.notifications.forEach(notification => {
+                                    console.log('通知:', notification);
+                                    const notificationItem = document.createElement('div');
+                                    notificationItem.className = `p-4 border-b border-white/10 cursor-pointer ${notification.is_read ? '' : 'bg-primary/10'}`;
+                                    // 存储通知ID
+                                    notificationItem.dataset.notificationId = notification.id;
+                                    notificationItem.innerHTML = `
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium">${notification.message}</p>
+                                                <p class="text-xs text-slate-500 mt-1">${notification.created_at}</p>
+                                            </div>
+                                            ${!notification.is_read ? '<div class="w-2 h-2 rounded-full bg-primary ml-2"></div>' : ''}
+                                        </div>
+                                    `;
+                                    
+                                    // 点击通知跳转到流程详情
+                                    notificationItem.addEventListener('click', function() {
+                                        if (notification.related_id) {
+                                            showFlowDetail(notification.related_id);
+                                            // 标记通知为已读
+                                            markNotificationRead(notification.id);
+                                        }
+                                    });
+                                    
+                                    notificationList.appendChild(notificationItem);
+                                });
+                            } else {
+                                notificationList.innerHTML = '<div class="p-4 text-center text-slate-500">暂无通知</div>';
+                                console.log('暂无通知');
+                            }
+                        } else {
+                            console.log('通知列表元素不存在');
+                        }
+                    } else {
+                        console.log('获取通知失败: 响应数据为空');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载通知失败:', error);
+                });
+        }
+
+        // 标记通知为已读
+        function markNotificationRead(notificationId) {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                return;
+            }
+            
+            // 发送请求标记通知为已读
+            fetch(`http://localhost:5000/api/notifications/${notificationId}/read?user_id=${user.id}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    // 重新加载通知列表
+                    loadNotifications();
+                }
+            })
+            .catch(error => {
+                console.error('标记通知已读失败:', error);
+            });
+        }
+
+        // 标记全部通知为已读
+        function markAllNotificationsRead() {
+            // 从本地存储获取用户信息
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                return;
+            }
+            
+            // 遍历所有未读通知并标记
+            const notificationItems = document.querySelectorAll('#notification-list > div');
+            let markedCount = 0;
+            notificationItems.forEach(item => {
+                if (item.classList.contains('bg-primary/10')) {
+                    // 获取通知ID
+                    const notificationId = item.dataset.notificationId;
+                    if (notificationId) {
+                        // 标记通知为已读
+                        markNotificationRead(notificationId);
+                        markedCount++;
+                    }
+                }
+            });
+            
+            if (markedCount > 0) {
+                showToast('全部通知已标记为已读');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查lucide是否加载成功
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                console.log('lucide未加载成功');
+            }
+
+            toast = document.getElementById('toast');
+            toastMessage = document.getElementById('toast-message');
+            toastTimer = null;
+
+            // 请求浏览器通知权限
+            requestNotificationPermission();
+
+            // 加载审批列表
+            loadApprovalList('todo');
+            // 加载通知列表
+            console.log('页面加载完成，开始加载通知');
+            loadNotifications();
+            
+            // 定时检查新通知（每30秒）
+            setInterval(function() {
+                console.log('定时检查新通知');
+                loadNotifications(true);
+            }, 30000);
+
+            // 标签页切换
+            const tabs = document.querySelectorAll('.border-b button');
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', function() {
+                    // 更新标签页样式
+                    tabs.forEach(t => {
+                        t.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                        t.classList.add('text-slate-500');
+                    });
+                    this.classList.remove('text-slate-500');
+                    this.classList.add('text-primary', 'border-b-2', 'border-primary');
+
+                    // 根据标签页索引加载对应数据
+                    const tabTypes = ['todo', 'initiated', 'completed'];
+                    loadApprovalList(tabTypes[index]);
+                });
+            });
+            
+            // 通知铃铛点击事件
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            console.log('通知铃铛元素:', notificationBell);
+            console.log('通知下拉菜单元素:', notificationDropdown);
+            if (notificationBell && notificationDropdown) {
+                // 确保下拉菜单初始状态为隐藏
+                notificationDropdown.classList.add('hidden');
+                console.log('初始化通知下拉菜单状态为隐藏');
+                
+                notificationBell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    console.log('点击通知铃铛，当前状态:', notificationDropdown.classList.contains('hidden'));
+                    notificationDropdown.classList.toggle('hidden');
+                    // 点击铃铛时重新加载通知
+                    loadNotifications();
+                });
+            }
+            
+            // 标记全部已读按钮点击事件
+            const markAllReadButton = document.getElementById('mark-all-read');
+            if (markAllReadButton) {
+                markAllReadButton.addEventListener('click', function() {
+                    markAllNotificationsRead();
+                });
+            }
+            
+            // 点击页面其他地方隐藏通知下拉菜单
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#notification-bell') && !e.target.closest('#notification-dropdown')) {
+                    if (notificationDropdown) {
+                        notificationDropdown.classList.add('hidden');
+                    }
+                }
+                
+                // 隐藏@人员列表
+                if (!e.target.closest('#user-list') && !e.target.id.startsWith('comment-input-')) {
+                    hideUserList();
+                }
+            });
+            
+            // 监听评论输入框的@输入
+            document.addEventListener('input', function(e) {
+                if (e.target.id.startsWith('comment-input-')) {
+                    const input = e.target;
+                    const value = input.value;
+                    const lastAtIndex = value.lastIndexOf('@');
+                    
+                    if (lastAtIndex >= 0) {
+                        // 显示@人员列表，即使没有输入任何字符
+                        showUserList(input, '');
+                    } else {
+                        // 隐藏@人员列表
+                        hideUserList();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限管理 - ERP系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        .permission-container {
+            padding: 24px;
+        }
+        .permission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .permission-header h2 {
+            margin: 0;
+            color: #1a202c;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .btn {
+            padding: 12px 24px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+        .btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        .permission-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .permission-card h3 {
+            color: #1a202c;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .permission-card h3::before {
+            content: '🔐';
+            margin-right: 12px;
+            font-size: 24px;
+        }
+        .permission-group {
+            margin-bottom: 32px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        .permission-group h4 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .permission-group h4::before {
+            content: '📁';
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .permission-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-left: 32px;
+        }
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background-color: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .permission-item:hover {
+            background-color: #f0f9ff;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.1);
+        }
+        .permission-item input[type="checkbox"] {
+            margin-right: 14px;
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        .permission-item label {
+            flex: 1;
+            font-size: 15px;
+            color: #4a5568;
+            margin: 0;
+            font-weight: 500;
+        }
+        .permission-item .permission-code {
+            font-size: 13px;
+            color: #718096;
+            margin-left: 12px;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 32px;
+            border-radius: 16px;
+            width: 550px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #1a202c;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+        .close:hover {
+            color: #2d3748;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 32px;
+            gap: 12px;
+        }
+        .btn.cancel {
+            background-color: #718096;
+        }
+        .btn.cancel:hover {
+            background-color: #4a5568;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .permission-footer {
+            text-align: center;
+            margin-top: 32px;
+            color: #718096;
+            font-size: 14px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .permission-footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item active">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">配置工具</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="#" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <div class="permission-container">
+                    <div class="permission-header">
+                        <div>
+                            <h2>权限管理</h2>
+                            <p style="color: #718096; font-size: 14px; margin-top: 8px;">管理系统中所有页面和功能的访问权限，为不同角色分配相应的权限</p>
+                        </div>
+                        <button class="btn" id="add-permission-btn">添加权限</button>
+                    </div>
+                    
+                    <div class="permission-card">
+                        <h3>系统权限列表</h3>
+                        <p style="color: #718096; font-size: 14px; margin-bottom: 24px;">以下是系统中所有页面的权限列表，可通过角色管理为不同角色分配这些权限</p>
+                        
+                        <!-- 骑手管理权限 -->
+                        <div class="permission-group">
+                            <h4>骑手管理</h4>
+                            <div class="permission-items">
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-overview" checked>
+                                    <label for="perm-rider-overview">运力总览</label>
+                                    <span class="permission-code">rider_overview</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-approval" checked>
+                                    <label for="perm-rider-approval">入职审批</label>
+                                    <span class="permission-code">rider_approval</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-roster" checked>
+                                    <label for="perm-rider-roster">骑手花名册</label>
+                                    <span class="permission-code">rider_roster</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-summary" checked>
+                                    <label for="perm-rider-summary">入离职汇总表</label>
+                                    <span class="permission-code">rider_summary</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-part-time" checked>
+                                    <label for="perm-rider-part-time">兼职骑手列表</label>
+                                    <span class="permission-code">rider_part_time</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-entry" checked>
+                                    <label for="perm-rider-entry">入职记录</label>
+                                    <span class="permission-code">rider_entry</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-exit" checked>
+                                    <label for="perm-rider-exit">离职记录</label>
+                                    <span class="permission-code">rider_exit</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-pending-exit" checked>
+                                    <label for="perm-rider-pending-exit">待离职统计</label>
+                                    <span class="permission-code">rider_pending_exit</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- KPI管理权限 -->
+                        <div class="permission-group">
+                            <h4>KPI管理</h4>
+                            <div class="permission-items">
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-kpi-monthly" checked>
+                                    <label for="perm-kpi-monthly">月累计划达成</label>
+                                    <span class="permission-code">kpi_monthly</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-kpi-daily" checked>
+                                    <label for="perm-kpi-daily">日实时达成</label>
+                                    <span class="permission-code">kpi_daily</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-attendance-effective" checked>
+                                    <label for="perm-attendance-effective">有效出勤达成率</label>
+                                    <span class="permission-code">attendance_effective</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-attendance-time" checked>
+                                    <label for="perm-attendance-time">时段出勤达成率</label>
+                                    <span class="permission-code">attendance_time</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 经营管理权限 -->
+                        <div class="permission-group">
+                            <h4>经营管理</h4>
+                            <div class="permission-items">
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-recruitment-cost" checked>
+                                    <label for="perm-recruitment-cost">招聘成本</label>
+                                    <span class="permission-code">recruitment_cost</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-cost" checked>
+                                    <label for="perm-rider-cost">骑手成本</label>
+                                    <span class="permission-code">rider_cost</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-cost-full" checked>
+                                    <label for="perm-rider-cost-full">全职成本</label>
+                                    <span class="permission-code">rider_cost_full</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-salary" checked>
+                                    <label for="perm-rider-salary">骑手薪资表</label>
+                                    <span class="permission-code">rider_salary</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-rider-cost-part" checked>
+                                    <label for="perm-rider-cost-part">兼职成本</label>
+                                    <span class="permission-code">rider_cost_part</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-system-fine" checked>
+                                    <label for="perm-system-fine">系统罚单</label>
+                                    <span class="permission-code">system_fine</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-management-cost" checked>
+                                    <label for="perm-management-cost">管理成本</label>
+                                    <span class="permission-code">management_cost</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-management-salary" checked>
+                                    <label for="perm-management-salary">管理人员薪资表</label>
+                                    <span class="permission-code">management_salary</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-performance" checked>
+                                    <label for="perm-performance">绩效考核达成情况</label>
+                                    <span class="permission-code">performance</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-management-cost-estimate" checked>
+                                    <label for="perm-management-cost-estimate">管理成本预估</label>
+                                    <span class="permission-code">management_cost_estimate</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-profit-estimate" checked>
+                                    <label for="perm-profit-estimate">利润预估</label>
+                                    <span class="permission-code">profit_estimate</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 人员及权限管理 -->
+                        <div class="permission-group">
+                            <h4>人员及权限管理</h4>
+                            <div class="permission-items">
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-org-manage" checked>
+                                    <label for="perm-org-manage">组织架构</label>
+                                    <span class="permission-code">org_manage</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-user-manage" checked>
+                                    <label for="perm-user-manage">管理人员花名册</label>
+                                    <span class="permission-code">user_manage</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-permission-manage" checked>
+                                    <label for="perm-permission-manage">权限管理</label>
+                                    <span class="permission-code">permission_manage</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-role-manage" checked>
+                                    <label for="perm-role-manage">角色管理</label>
+                                    <span class="permission-code">role_manage</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 配置工具权限 -->
+                        <div class="permission-group">
+                            <h4>配置工具</h4>
+                            <div class="permission-items">
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-workflow" checked>
+                                    <label for="perm-workflow">工作流配置</label>
+                                    <span class="permission-code">workflow</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-recruitment-policy" checked>
+                                    <label for="perm-recruitment-policy">招聘政策配置</label>
+                                    <span class="permission-code">recruitment_policy</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-salary-plan" checked>
+                                    <label for="perm-salary-plan">薪资方案配置</label>
+                                    <span class="permission-code">salary_plan</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-performance-policy" checked>
+                                    <label for="perm-performance-policy">内部绩效考核方案配置</label>
+                                    <span class="permission-code">performance_policy</span>
+                                </div>
+                                <div class="permission-item">
+                                    <input type="checkbox" id="perm-fixed-cost" checked>
+                                    <label for="perm-fixed-cost">固定费用配置</label>
+                                    <span class="permission-code">fixed_cost</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-footer">
+                        <p>权限管理系统用于控制用户对系统功能的访问权限</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    
+    <!-- 添加/编辑权限模态框 -->
+    <div class="modal" id="permission-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加权限</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="permission-form">
+                <input type="hidden" id="permission-id">
+                <div class="form-group">
+                    <label for="permission-name">权限名称</label>
+                    <input type="text" id="permission-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="permission-code">权限代码</label>
+                    <input type="text" id="permission-code" required>
+                </div>
+                <div class="form-group">
+                    <label for="permission-description">权限描述</label>
+                    <textarea id="permission-description"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn cancel" id="cancel-btn">取消</button>
+                    <button type="submit" class="btn btn-primary" id="save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/index.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载权限数据
+            loadPermissions();
+            
+            // 模态框相关
+            const modal = document.getElementById('permission-modal');
+            const addBtn = document.getElementById('add-permission-btn');
+            const closeBtn = document.querySelector('.close');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const form = document.getElementById('permission-form');
+            
+            // 打开添加权限模态框
+            addBtn.addEventListener('click', function() {
+                document.getElementById('modal-title').textContent = '添加权限';
+                document.getElementById('permission-id').value = '';
+                document.getElementById('permission-name').value = '';
+                document.getElementById('permission-code').value = '';
+                document.getElementById('permission-description').value = '';
+                modal.style.display = 'block';
+            });
+            
+            // 关闭模态框
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // 提交表单
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePermission();
+            });
+        });
+        
+        function loadPermissions() {
+            fetch('http://localhost:5000/api/permissions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('权限数据加载成功:', data.permissions);
+                    } else {
+                        console.error('加载权限失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载权限失败:', error);
+                });
+        }
+        
+        function savePermission() {
+            const id = document.getElementById('permission-id').value;
+            const name = document.getElementById('permission-name').value;
+            const code = document.getElementById('permission-code').value;
+            const description = document.getElementById('permission-description').value;
+            
+            // 这里应该调用保存API
+            alert('保存功能待实现');
+            document.getElementById('permission-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP系统 - 入离职汇总表</title>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <span id="username"></span>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">人员及权限管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">配置工具</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="salary-plan-config.html" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+
+            </aside>
+            <main class="main">
+                <div class="rider-entry-exit-summary" id="rider-entry-exit-summary-page">
+                    <h2>入离职汇总表</h2>
+                    <div class="rider-tabs">
+                        <a href="rider-overview.html" class="tab">运力总览</a>
+                        <!-- <a href="rider-approval.html" class="tab">入职审批</a> -->
+                        <a href="rider-roster.html" class="tab">骑手花名册</a>
+                        <a href="rider-entry-exit-summary.html" class="tab active">入离职汇总表</a>
+                        <a href="rider-part-time.html" class="tab">兼职骑手列表</a>
+                        <a href="rider-entry-records.html" class="tab">入职记录</a>
+                        <a href="rider-exit-records.html" class="tab">离职记录</a>
+                        <a href="rider-pending-exit.html" class="tab">待离职统计</a>
+                    </div>
+                    
+                    <!-- 时间维度切换 -->
+                    <div class="time-dimension-tabs">
+                        <button class="btn btn-primary time-tab active" data-dimension="day">日维度</button>
+                        <button class="btn btn-secondary time-tab" data-dimension="week">周维度</button>
+                        <button class="btn btn-secondary time-tab" data-dimension="halfMonth">半月维度</button>
+                        <button class="btn btn-secondary time-tab" data-dimension="month">月维度</button>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <div class="section">
+                        <h3>入离职趋势分析</h3>
+                        <div class="chart-container">
+                            <div class="chart-wrapper">
+                                <canvas id="entry-exit-trend-chart"></canvas>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="entry-exit-rate-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 三方中介分析图表 -->
+                    <div class="section">
+                        <h3>三方中介分析</h3>
+                        <div class="chart-container">
+                            <div class="chart-wrapper">
+                                <canvas id="third-party-entry-chart"></canvas>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="third-party-attrition-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 筛选器 -->
+                    <div class="rider-filters">
+                        <div class="filter-item">
+                            <label for="city-select">城市子商</label>
+                            <select id="city-select">
+                                <option value="">请选择城市</option>
+                                <option value="hangzhou">杭州</option>
+                                <option value="wuhan">武汉</option>
+                                <option value="shenyang">沈阳</option>
+                                <option value="jinhua">金华</option>
+                                <option value="shaoxing">绍兴</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="department-select">站点</label>
+                            <select id="department-select">
+                                <option value="">请选择站点</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="date-range">日期范围</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="date" id="start-date" style="padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                                <span style="font-size: 12px; color: #666;">至</span>
+                                <input type="date" id="end-date" style="padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                            </div>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-reset">重置</button>
+                            <button class="btn btn-search">搜索</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="rider-actions">
+                        <button class="btn btn-secondary">导出数据</button>
+                        <button class="btn btn-secondary">全屏</button>
+                    </div>
+                    
+                    <!-- 综合统计表格 -->
+                    <div class="section">
+                        <h3>综合统计</h3>
+                        <table id="entry-exit-summary-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>NO</th>
+                                    <th>站点名称</th>
+                                    <th>入职人数</th>
+                                    <th>全职入职人数</th>
+                                    <th>内推</th>
+                                    <th>三方</th>
+                                    <th>兼职入职人数</th>
+                                    <th>离职人数</th>
+                                    <th>净增人数</th>
+                                    <th>入职率</th>
+                                    <th>离职率</th>
+                                    <th>在职人数</th>
+                                    <th>待离职全职数</th>
+                                    <th>待离职兼职数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="16" class="loading">
+                                        <p>加载中...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 三方表 -->
+                    <div class="section">
+                        <h3>三方表</h3>
+                        <table id="third-party-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>NO</th>
+                                    <th>站点名称</th>
+                                    <th>三方名称</th>
+                                    <th>入职人数</th>
+                                    <th>离职人数</th>
+                                    <th>流失率</th>
+                                    <th>留存率</th>
+                                    <th>预结算金额</th>
+                                    <th>预结算流失金额</th>
+                                    <th>已结算金额</th>
+                                    <th>已结算流失金额</th>
+                                    <th>未结算金额</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="14" class="loading">
+                                        <p>加载中...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="js/index.js"></script>
+    <script>
+        // 确保页面加载完成后立即加载入离职汇总数据
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟一点时间，确保 index.js 中的基础初始化完成
+            setTimeout(function() {
+                // 检查是否在入离职汇总页面
+                if (window.location.pathname.includes('rider-entry-exit-summary.html')) {
+                    console.log('入离职汇总页面初始化，加载默认日维度数据');
+                    const selectedCity = localStorage.getItem('selectedCity') || 'hangzhou';
+                    // 加载所有相关数据
+                    if (typeof loadEntryExitSummaryData === 'function') {
+                        loadEntryExitSummaryData({ city_code: selectedCity, dimension: 'day' });
+                    }
+                    if (typeof loadThirdPartySummaryData === 'function') {
+                        loadThirdPartySummaryData({ city_code: selectedCity });
+                    }
+                    if (typeof loadEntryExitTrendCharts === 'function') {
+                        loadEntryExitTrendCharts({ city_code: selectedCity, dimension: 'day' });
+                    }
+                    if (typeof loadThirdPartyAnalysisCharts === 'function') {
+                        loadThirdPartyAnalysisCharts({ city_code: selectedCity });
+                    }
+                }
+            }, 500);
+        });
+    </script>
+    <style>
+        /* 入离职汇总表页面样式 */
+        .rider-entry-exit-summary {
+            padding: 0;
+        }
+        
+        .time-dimension-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            margin-top: 40px;
+        }
+        
+        .time-tab {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .time-tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .time-tab:not(.active) {
+            background-color: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .time-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #entry-exit-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            font-size: 14px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        #entry-exit-summary-table th,
+        #entry-exit-summary-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        
+        #entry-exit-summary-table th {
+            background-color: #f0f8ff;
+            font-weight: bold;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        #entry-exit-summary-table tr:hover {
+            background-color: #f9f9f9;
+            transition: background-color 0.2s ease;
+        }
+        
+        #entry-exit-summary-table tr {
+            color: #333;
+            transition: background-color 0.2s ease;
+            background-color: white;
+        }
+        
+        #entry-exit-summary-table tr:nth-child(even) {
+            background-color: white;
+        }
+        
+        #third-party-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            font-size: 14px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        #third-party-table th,
+        #third-party-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        
+        #third-party-table th {
+            background-color: #f0f8ff;
+            font-weight: bold;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        #third-party-table tr:hover {
+            background-color: #f9f9f9;
+            transition: background-color 0.2s ease;
+        }
+        
+        #third-party-table tr {
+            color: #333;
+            transition: background-color 0.2s ease;
+            background-color: white;
+        }
+        
+        #third-party-table tr:nth-child(even) {
+            background-color: white;
+        }
+        
+        /* 图表样式 */
+        .chart-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-wrapper {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-wrapper canvas {
+            max-width: 100%;
+            height: 300px;
+        }
+    </style>
+</body>
+</html>

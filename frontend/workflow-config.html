@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流程架构配置系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677FF',
+                        secondary: '#0958D9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        bgGray: '#F5F7FA',
+                        borderGray: '#E5E8EF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F5F7FA 0%, #E8ECF4 100%);
+            min-height: 100vh;
+        }
+        .container-main {
+            width: 100%;
+            padding: 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+        .workflow-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .workflow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(22, 119, 255, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(22, 119, 255, 0.3);
+        }
+        .approval-node {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .approval-node::after {
+            content: '';
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 24px;
+            background: linear-gradient(180deg, #1677FF 0%, transparent 100%);
+        }
+        .approval-node:last-child::after {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu active">配置工具</a>
+                                    <ul class="sub-menu show">
+                                        <li><a href="workflow-config.html" class="nav-item active" data-page="listPage">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="salary-plan-config.html" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <!-- 流程列表页 -->
+                <div id="listPage" class="container-main">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">流程架构管理</h1>
+                                <p class="text-gray-500 text-sm">管理和配置各类业务流程</p>
+                            </div>
+                            <button id="addWorkflowBtn" class="btn-primary text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                                新增流程
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 流程卡片列表 -->
+                    <div id="workflowList" class="grid grid-cols-3 gap-6">
+                        <!-- 流程卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 配置页面 -->
+                <div id="configPage" class="container-main hidden">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">流程配置</h1>
+                                <p class="text-gray-500 text-sm">配置流程的详细信息和审批步骤</p>
+                            </div>
+                            <button id="backBtn" class="glass-card px-4 py-2 rounded-lg flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                返回列表
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- 左侧配置区 -->
+                        <div class="col-span-2 space-y-6">
+                            <!-- 基础信息 -->
+                            <div class="glass-card rounded-2xl p-6 slide-in">
+                                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-primary"></i>
+                                    基础信息
+                                </h2>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">流程名称</label>
+                                        <input type="text" id="workflowName" placeholder="请输入流程名称" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors">
+                                    </div>
+                                    <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">流程类型</label>
+                            <select id="workflowType" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors">
+                                <option>入职流程</option>
+                                <option>离职流程</option>
+                                <option>绩效方案</option>
+                            </select>
+                        </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">流程描述</label>
+                                        <textarea id="workflowDesc" rows="3" placeholder="请输入流程描述" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors resize-none"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 流程字段配置 -->
+                            <div class="glass-card rounded-2xl p-6 slide-in" style="animation-delay: 0.1s">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <i data-lucide="list" class="w-5 h-5 text-primary"></i>
+                                        流程字段
+                                    </h2>
+                                    <button id="addFieldBtn" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                        添加字段
+                                    </button>
+                                </div>
+                                <div id="fieldList" class="space-y-3">
+                                    <!-- 字段项将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧审批流程 -->
+                        <div class="col-span-1">
+                            <div class="glass-card rounded-2xl p-6 slide-in sticky top-8" style="animation-delay: 0.2s">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <i data-lucide="git-branch" class="w-5 h-5 text-primary"></i>
+                                        审批流程
+                                    </h2>
+                                    <button id="addApproverBtn" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+                                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                        添加节点
+                                    </button>
+                                </div>
+
+                                <!-- 发起人 -->
+                                <div class="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">发起人</p>
+                                            <p class="text-xs text-gray-500">流程提交人</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 审批节点列表 -->
+                                <div id="approverList" class="space-y-6 mb-6">
+                                    <!-- 审批节点将通过JavaScript动态生成 -->
+                                </div>
+
+                                <!-- 结束节点 -->
+                                <div class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">流程结束</p>
+                                            <p class="text-xs text-gray-500">审批完成</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 保存按钮 -->
+                                <button id="saveBtn" class="w-full mt-6 btn-primary text-white py-3 rounded-xl font-semibold">
+                                    保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="js/index.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 页面元素
+            const listPage = document.getElementById('listPage');
+            const configPage = document.getElementById('configPage');
+            const addWorkflowBtn = document.getElementById('addWorkflowBtn');
+            const backBtn = document.getElementById('backBtn');
+            const workflowList = document.getElementById('workflowList');
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            const fieldList = document.getElementById('fieldList');
+            const addApproverBtn = document.getElementById('addApproverBtn');
+            const approverList = document.getElementById('approverList');
+            const saveBtn = document.getElementById('saveBtn');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            let workflowCount = 0;
+            let fieldCount = 0;
+            let approverCount = 0;
+            let currentArchitectureId = null;
+
+            // 颜色数组用于审批节点
+            const nodeColors = ['primary', 'green-500', 'purple-500', 'orange-500', 'pink-500', 'indigo-500'];
+
+            // 初始化图标
+            lucide.createIcons();
+
+            // 加载流程数据
+            loadFlowData();
+            loadApprovers();
+
+            // 导航栏点击事件
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // 只处理工作流配置内部的导航
+                    if (this.getAttribute('data-page')) {
+                        e.preventDefault();
+                        const targetPage = this.getAttribute('data-page');
+                        
+                        // 显示对应页面
+                        if (targetPage === 'listPage') {
+                            listPage.classList.remove('hidden');
+                            configPage.classList.add('hidden');
+                        } else if (targetPage === 'configPage') {
+                            // 重置表单
+                            document.getElementById('workflowName').value = '';
+                            document.getElementById('workflowType').value = '入职流程';
+                            document.getElementById('workflowDesc').value = '';
+                            fieldList.innerHTML = '';
+                            approverList.innerHTML = '';
+                            fieldCount = 0;
+                            approverCount = 0;
+                            
+                            listPage.classList.add('hidden');
+                            configPage.classList.remove('hidden');
+                        }
+                        
+                        window.scrollTo(0, 0);
+                    }
+                    // 其他导航项保持默认行为
+                });
+            });
+
+            // 新增流程
+            addWorkflowBtn.addEventListener('click', function() {
+                // 重置表单
+                document.getElementById('workflowName').value = '';
+                document.getElementById('workflowType').value = '入职流程';
+                document.getElementById('workflowDesc').value = '';
+                fieldList.innerHTML = '';
+                approverList.innerHTML = '';
+                fieldCount = 0;
+                approverCount = 0;
+                
+                // 显示配置页面
+                listPage.classList.add('hidden');
+                configPage.classList.remove('hidden');
+                
+                window.scrollTo(0, 0);
+            });
+
+            // 返回列表
+            backBtn.addEventListener('click', function() {
+                configPage.classList.add('hidden');
+                listPage.classList.remove('hidden');
+                
+                window.scrollTo(0, 0);
+            });
+
+            // 添加字段
+            addFieldBtn.addEventListener('click', function() {
+                fieldCount++;
+                const field = document.createElement('div');
+                field.className = 'field-item flex items-center gap-4 p-4 bg-gray-50 rounded-xl border-2 border-transparent hover:border-primary transition-colors fade-in';
+                field.innerHTML = `
+                    <i data-lucide="grip-vertical" class="w-5 h-5 text-gray-400 cursor-move"></i>
+                    <div class="flex-1">
+                        <input type="text" value="字段 ${fieldCount}" class="w-full font-medium text-gray-900 bg-transparent focus:outline-none">
+                    </div>
+                    <select class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm field-type-select">
+                                <option>文本</option>
+                                <option>数字</option>
+                                <option>日期</option>
+                                <option>单选</option>
+                                <option>多选</option>
+                                <option>文件上传</option>
+                                <option>薪资方案</option>
+                                <option>劳务合同签署</option>
+                            </select>
+                    <button class="remove-field w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                `;
+                fieldList.appendChild(field);
+                lucide.createIcons();
+
+                const removeBtn = field.querySelector('.remove-field');
+                removeBtn.addEventListener('click', function() {
+                    field.style.opacity = '0';
+                    field.style.transform = 'translateX(-20px)';
+                    let fadeTimer = setTimeout(() => {
+                        field.remove();
+                        clearTimeout(fadeTimer);
+                    }, 300);
+                });
+
+                // 字段类型选择事件
+                const typeSelect = field.querySelector('.field-type-select');
+                typeSelect.addEventListener('change', function() {
+                    const fieldType = this.value;
+                    // 移除现有的类目设置区域
+                    const existingOptions = field.querySelector('.field-options');
+                    if (existingOptions) {
+                        existingOptions.remove();
+                    }
+                    
+                    // 根据字段类型添加相应的控件
+                    if (fieldType === '日期') {
+                        // 可以在这里添加日期选择器逻辑
+                    } else if (fieldType === '单选' || fieldType === '多选') {
+                        // 添加类目设置区域
+                        const optionsDiv = document.createElement('div');
+                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                        optionsDiv.innerHTML = `
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${fieldType === '单选' ? '单选' : '多选'}选项</label>
+                            <div class="space-y-2" id="options-list-${fieldCount}">
+                                <div class="option-item flex items-center gap-2">
+                                    <input type="text" value="选项1" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                    <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <div class="option-item flex items-center gap-2">
+                                    <input type="text" value="选项2" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                    <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="add-option mt-2 text-sm text-primary hover:text-secondary transition-colors flex items-center gap-1">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                添加选项
+                            </button>
+                        `;
+                        field.appendChild(optionsDiv);
+                        lucide.createIcons();
+                        
+                        // 添加选项按钮点击事件
+                        const addOptionBtn = optionsDiv.querySelector('.add-option');
+                        addOptionBtn.addEventListener('click', function() {
+                            const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                            const optionCount = optionsList.children.length + 1;
+                            const optionItem = document.createElement('div');
+                            optionItem.className = 'option-item flex items-center gap-2';
+                            optionItem.innerHTML = `
+                                <input type="text" value="选项${optionCount}" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            `;
+                            optionsList.appendChild(optionItem);
+                            lucide.createIcons();
+                            
+                            // 移除选项按钮点击事件
+                            const removeOptionBtn = optionItem.querySelector('.remove-option');
+                            removeOptionBtn.addEventListener('click', function() {
+                                optionItem.remove();
+                                // 更新选项编号
+                                const optionItems = optionsList.querySelectorAll('.option-item');
+                                optionItems.forEach((item, index) => {
+                                    item.querySelector('input').value = `选项${index + 1}`;
+                                });
+                            });
+                        });
+                        
+                        // 移除选项按钮点击事件
+                        const removeOptionBtns = optionsDiv.querySelectorAll('.remove-option');
+                        removeOptionBtns.forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const optionItem = btn.closest('.option-item');
+                                optionItem.remove();
+                                // 更新选项编号
+                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                const optionItems = optionsList.querySelectorAll('.option-item');
+                                optionItems.forEach((item, index) => {
+                                    item.querySelector('input').value = `选项${index + 1}`;
+                                });
+                            });
+                        });
+                    } else if (fieldType === '文件上传') {
+                        // 可以在这里添加文件上传控件
+                    } else if (fieldType === '薪资方案') {
+                        // 添加薪资方案选择器
+                        const optionsDiv = document.createElement('div');
+                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                        optionsDiv.innerHTML = `
+                            <label class="block text-sm font-medium text-gray-700 mb-2">薪资方案</label>
+                            <select id="salary-plan-select-${fieldCount}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                <option value="">加载中...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-2">将从已启用的薪资方案中获取选项</p>
+                        `;
+                        field.appendChild(optionsDiv);
+                        lucide.createIcons();
+                        
+                        // 加载已启用的薪资方案
+                        loadEnabledSalaryPlans(fieldCount);
+                    } else if (fieldType === '劳务合同签署') {
+                        // 添加劳务合同选择器
+                        const optionsDiv = document.createElement('div');
+                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                        optionsDiv.innerHTML = `
+                            <label class="block text-sm font-medium text-gray-700 mb-2">劳务合同</label>
+                            <select id="contract-select-${fieldCount}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                <option value="">加载中...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-2">将从已启用的合同配置中获取选项</p>
+                        `;
+                        field.appendChild(optionsDiv);
+                        lucide.createIcons();
+                        
+                        // 加载已启用的合同
+                        loadEnabledContracts(fieldCount);
+                    }
+                });
+            });
+
+            // 添加审批节点
+            addApproverBtn.addEventListener('click', function() {
+                approverCount++;
+                const colorIndex = (approverCount - 1) % nodeColors.length;
+                const color = nodeColors[colorIndex];
+                const bgColor = color === 'primary' ? 'blue' : color.replace('-500', '');
+                
+                const node = document.createElement('div');
+                node.className = 'approval-node fade-in';
+                node.innerHTML = `
+                    <div class="p-4 bg-white rounded-xl border-2 border-${color} shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-${color} text-white rounded-lg flex items-center justify-center text-sm font-bold">${approverCount}</div>
+                                <div>
+                                    <input type="text" value="审批节点 ${approverCount}" class="font-semibold text-gray-900 text-sm w-full p-1 border-1 border-gray-200 rounded">
+                                    <p class="text-xs text-gray-500 mt-0.5">必须审批</p>
+                                </div>
+                            </div>
+                            <button class="remove-approver text-gray-400 hover:text-red-500 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <select class="approver-select px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm flex-1">
+                                <option value="">选择审批人</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <input type="text" placeholder="抄送人员（逗号分隔）" class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm flex-1">
+                        </div>
+                    </div>
+                `;
+                approverList.appendChild(node);
+                lucide.createIcons();
+                attachApproverEvents(node, bgColor);
+                // 填充审批人选择框
+                updateApproverSelects();
+            });
+
+            // 为审批节点添加事件
+            function attachApproverEvents(node, bgColor) {
+                const removeBtn = node.querySelector('.remove-approver');
+                
+                removeBtn.addEventListener('click', function() {
+                    if (confirm('确定要删除这个审批节点吗？')) {
+                        node.style.opacity = '0';
+                        node.style.transform = 'scale(0.95)';
+                        let fadeTimer = setTimeout(() => {
+                            node.remove();
+                            clearTimeout(fadeTimer);
+                        }, 300);
+                    }
+                });
+            }
+
+            // 保存配置
+            saveBtn.addEventListener('click', function() {
+                const flowName = document.getElementById('workflowName').value;
+                const flowType = document.getElementById('workflowType').value;
+                const description = document.getElementById('workflowDesc').value;
+                
+                if (!flowName || !flowType) {
+                    alert('请填写流程名称和流程类型');
+                    return;
+                }
+                
+                const fields = [];
+                document.querySelectorAll('.field-item').forEach((field, index) => {
+                    const fieldName = field.querySelector('input').value;
+                    const fieldType = field.querySelector('select').value;
+                    if (fieldName) {
+                        const fieldData = { 
+                            name: fieldName, 
+                            type: fieldType,
+                            is_required: true
+                        };
+                        
+                        // 收集单选和多选字段的选项
+                        if (fieldType === '单选' || fieldType === '多选') {
+                            const optionsDiv = field.querySelector('.field-options');
+                            if (optionsDiv) {
+                                const optionInputs = optionsDiv.querySelectorAll('.option-item input');
+                                const options = [];
+                                optionInputs.forEach(input => {
+                                    if (input.value) {
+                                        options.push(input.value);
+                                    }
+                                });
+                                fieldData.options = options;
+                            }
+                        } else if (fieldType === '薪资方案') {
+                            // 薪资方案字段不需要选项，后端会处理
+                        }
+                        
+                        fields.push(fieldData);
+                    }
+                });
+                
+                const steps = [];
+                document.querySelectorAll('.approval-node').forEach((node, index) => {
+                    const stepName = node.querySelector('input').value;
+                    const approverId = node.querySelector('.approver-select').value;
+                    if (stepName && approverId) {
+                        steps.push({ 
+                            name: stepName, 
+                            approver_id: approverId, 
+                            step_order: index + 1
+                        });
+                    }
+                });
+                
+                if (steps.length === 0) {
+                    alert('请至少添加一个审批节点');
+                    return;
+                }
+                
+                const flowData = {
+                    flow_name: flowName,
+                    flow_type: flowType,
+                    description: description,
+                    fields: fields,
+                    steps: steps
+                };
+                
+                let url = 'http://localhost:5000/api/flows';
+                let method = 'POST';
+                
+                // 如果是编辑现有流程，使用PUT请求
+                if (currentArchitectureId) {
+                    url = `http://localhost:5000/api/flows/architecture/${currentArchitectureId}`;
+                    method = 'PUT';
+                }
+                
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(flowData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('流程架构配置保存成功');
+                        configPage.classList.add('hidden');
+                        listPage.classList.remove('hidden');
+                        loadFlowData();
+                        // 重置currentArchitectureId
+                        currentArchitectureId = null;
+                    } else {
+                        alert('保存失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('保存流程架构失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            });
+
+            // 加载流程数据
+            function loadFlowData() {
+                fetch('http://localhost:5000/api/flows')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            workflowCount = data.data.length;
+                            updateWorkflowList(data.data);
+                        } else {
+                            console.error('加载流程数据失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载流程数据失败:', error);
+                    });
+            }
+
+            // 更新流程列表
+            function updateWorkflowList(flows) {
+                workflowList.innerHTML = '';
+                
+                if (flows.length === 0) {
+                    workflowList.innerHTML = `
+                        <div class="col-span-3 flex flex-col items-center justify-center h-64 glass-card rounded-2xl">
+                            <i data-lucide="inbox" class="w-12 h-12 text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">暂无流程配置</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+                
+                flows.forEach(flow => {
+                    const card = document.createElement('div');
+                    card.className = 'workflow-card glass-card rounded-2xl p-6 fade-in';
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                                <i data-lucide="user-check" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <span class="px-3 py-1 ${flow.status === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} text-xs font-medium rounded-full">${flow.status === 'enabled' ? '启用中' : '已停用'}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${flow.flow_name}</h3>
+                        <p class="text-gray-500 text-sm mb-6">${flow.description || '暂无描述'}</p>
+                        <div class="flex gap-3">
+                            <button class="config-btn flex-1 bg-primary text-white px-4 py-2.5 rounded-lg font-medium hover:bg-secondary transition-colors flex items-center justify-center gap-2" onclick="editFlow(${flow.id})">
+                                <i data-lucide="settings" class="w-4 h-4"></i>
+                                配置
+                            </button>
+                            <button class="status-btn w-12 h-11 ${flow.status === 'enabled' ? 'border-2 border-yellow-200 text-yellow-500 hover:bg-yellow-50' : 'border-2 border-green-200 text-green-500 hover:bg-green-50'} rounded-lg transition-colors flex items-center justify-center" onclick="toggleFlowStatus(${flow.id}, '${flow.status}')">
+                                <i data-lucide="${flow.status === 'enabled' ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                            </button>
+                            <button class="delete-btn w-12 h-11 border-2 border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" onclick="deleteFlow(${flow.id})">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    workflowList.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            // 编辑流程
+            window.editFlow = function(architectureId) {
+                currentArchitectureId = architectureId;
+                fetch(`http://localhost:5000/api/flows/architecture/${architectureId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const architecture = data.architecture;
+                            document.getElementById('workflowName').value = architecture.flow_name;
+                            document.getElementById('workflowType').value = architecture.flow_type;
+                            document.getElementById('workflowDesc').value = architecture.description || '';
+                            
+                            // 清空字段和步骤
+                            fieldList.innerHTML = '';
+                            approverList.innerHTML = '';
+                            fieldCount = 0;
+                            approverCount = 0;
+                            
+                            // 加载字段
+                            if (architecture.fields) {
+                                architecture.fields.forEach((field, index) => {
+                                    fieldCount++;
+                                    const fieldDiv = document.createElement('div');
+                                    fieldDiv.className = 'field-item flex items-center gap-4 p-4 bg-gray-50 rounded-xl border-2 border-transparent hover:border-primary transition-colors fade-in';
+                                    fieldDiv.innerHTML = `
+                                        <i data-lucide="grip-vertical" class="w-5 h-5 text-gray-400 cursor-move"></i>
+                                        <div class="flex-1">
+                                            <input type="text" value="${field.field_name}" class="w-full font-medium text-gray-900 bg-transparent focus:outline-none">
+                                        </div>
+                                        <select class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm field-type-select">
+                                            <option ${field.field_type === '文本' ? 'selected' : ''}>文本</option>
+                                            <option ${field.field_type === '数字' ? 'selected' : ''}>数字</option>
+                                            <option ${field.field_type === '日期' ? 'selected' : ''}>日期</option>
+                                            <option ${field.field_type === '单选' ? 'selected' : ''}>单选</option>
+                                            <option ${field.field_type === '多选' ? 'selected' : ''}>多选</option>
+                                            <option ${field.field_type === '文件上传' ? 'selected' : ''}>文件上传</option>
+                                            <option ${field.field_type === '薪资方案' ? 'selected' : ''}>薪资方案</option>
+                                            <option ${field.field_type === '劳务合同签署' ? 'selected' : ''}>劳务合同签署</option>
+                                        </select>
+                                        <button class="remove-field w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                            <i data-lucide="x" class="w-5 h-5"></i>
+                                        </button>
+                                    `;
+                                    fieldList.appendChild(fieldDiv);
+                                    
+                                    const removeBtn = fieldDiv.querySelector('.remove-field');
+                                    removeBtn.addEventListener('click', function() {
+                                        fieldDiv.style.opacity = '0';
+                                        fieldDiv.style.transform = 'translateX(-20px)';
+                                        let fadeTimer = setTimeout(() => {
+                                            fieldDiv.remove();
+                                            clearTimeout(fadeTimer);
+                                        }, 300);
+                                    });
+                                    
+                                    // 加载字段选项
+                                    if ((field.field_type === '单选' || field.field_type === '多选') && field.options) {
+                                        // 添加类目设置区域
+                                        const optionsDiv = document.createElement('div');
+                                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                                        
+                                        let optionsHtml = `
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">${field.field_type === '单选' ? '单选' : '多选'}选项</label>
+                                            <div class="space-y-2" id="options-list-${fieldCount}">
+                                        `;
+                                        
+                                        field.options.forEach((option, index) => {
+                                            optionsHtml += `
+                                                <div class="option-item flex items-center gap-2">
+                                                    <input type="text" value="${option}" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                    <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                                    </button>
+                                                </div>
+                                            `;
+                                        });
+                                        
+                                        optionsHtml += `
+                                            </div>
+                                            <button class="add-option mt-2 text-sm text-primary hover:text-secondary transition-colors flex items-center gap-1">
+                                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                                添加选项
+                                            </button>
+                                        `;
+                                        
+                                        optionsDiv.innerHTML = optionsHtml;
+                                        fieldDiv.appendChild(optionsDiv);
+                                        lucide.createIcons();
+                                        
+                                        // 添加选项按钮点击事件
+                                        const addOptionBtn = optionsDiv.querySelector('.add-option');
+                                        addOptionBtn.addEventListener('click', function() {
+                                            const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                            const optionCount = optionsList.children.length + 1;
+                                            const optionItem = document.createElement('div');
+                                            optionItem.className = 'option-item flex items-center gap-2';
+                                            optionItem.innerHTML = `
+                                                <input type="text" value="选项${optionCount}" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                                </button>
+                                            `;
+                                            optionsList.appendChild(optionItem);
+                                            lucide.createIcons();
+                                            
+                                            // 移除选项按钮点击事件
+                                            const removeOptionBtn = optionItem.querySelector('.remove-option');
+                                            removeOptionBtn.addEventListener('click', function() {
+                                                optionItem.remove();
+                                                // 更新选项编号
+                                                const optionItems = optionsList.querySelectorAll('.option-item');
+                                                optionItems.forEach((item, index) => {
+                                                    item.querySelector('input').value = `选项${index + 1}`;
+                                                });
+                                            });
+                                        });
+                                        
+                                        // 移除选项按钮点击事件
+                                        const removeOptionBtns = optionsDiv.querySelectorAll('.remove-option');
+                                        removeOptionBtns.forEach(btn => {
+                                            btn.addEventListener('click', function() {
+                                                const optionItem = btn.closest('.option-item');
+                                                optionItem.remove();
+                                                // 更新选项编号
+                                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                const optionItems = optionsList.querySelectorAll('.option-item');
+                                                optionItems.forEach((item, index) => {
+                                                    item.querySelector('input').value = `选项${index + 1}`;
+                                                });
+                                            });
+                                        });
+                                    } else if (field.field_type === '薪资方案') {
+                                        // 添加薪资方案选择器
+                                        const optionsDiv = document.createElement('div');
+                                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                                        optionsDiv.innerHTML = `
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">薪资方案</label>
+                                            <select id="salary-plan-select-${fieldCount}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                <option value="">加载中...</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 mt-2">将从已启用的薪资方案中获取选项</p>
+                                        `;
+                                        fieldDiv.appendChild(optionsDiv);
+                                        lucide.createIcons();
+                                        
+                                        // 加载已启用的薪资方案
+                                        loadEnabledSalaryPlans(fieldCount);
+                                    } else if (field.field_type === '劳务合同签署') {
+                                        // 添加劳务合同选择器
+                                        const optionsDiv = document.createElement('div');
+                                        optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                                        optionsDiv.innerHTML = `
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">劳务合同</label>
+                                            <select id="contract-select-${fieldCount}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                <option value="">加载中...</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 mt-2">将从已启用的合同配置中获取选项</p>
+                                        `;
+                                        fieldDiv.appendChild(optionsDiv);
+                                        lucide.createIcons();
+                                        
+                                        // 加载已启用的合同
+                                        loadEnabledContracts(fieldCount);
+                                    }
+                                    
+                                    // 字段类型选择事件
+                                    const typeSelect = fieldDiv.querySelector('.field-type-select');
+                                    typeSelect.addEventListener('change', function() {
+                                        const fieldType = this.value;
+                                        // 移除现有的类目设置区域
+                                        const existingOptions = fieldDiv.querySelector('.field-options');
+                                        if (existingOptions) {
+                                            existingOptions.remove();
+                                        }
+                                        
+                                        // 根据字段类型添加相应的控件
+                                        if (fieldType === '日期') {
+                                            // 可以在这里添加日期选择器逻辑
+                                        } else if (fieldType === '单选' || fieldType === '多选') {
+                                            // 添加类目设置区域
+                                            const optionsDiv = document.createElement('div');
+                                            optionsDiv.className = 'field-options mt-3 p-3 bg-white rounded-lg border border-gray-200';
+                                            optionsDiv.innerHTML = `
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">${fieldType === '单选' ? '单选' : '多选'}选项</label>
+                                                <div class="space-y-2" id="options-list-${fieldCount}">
+                                                    <div class="option-item flex items-center gap-2">
+                                                        <input type="text" value="选项1" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                        <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                                            <i data-lucide="x" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="option-item flex items-center gap-2">
+                                                        <input type="text" value="选项2" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                        <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                                            <i data-lucide="x" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <button class="add-option mt-2 text-sm text-primary hover:text-secondary transition-colors flex items-center gap-1">
+                                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                                    添加选项
+                                                </button>
+                                            `;
+                                            fieldDiv.appendChild(optionsDiv);
+                                            lucide.createIcons();
+                                            
+                                            // 添加选项按钮点击事件
+                                            const addOptionBtn = optionsDiv.querySelector('.add-option');
+                                            addOptionBtn.addEventListener('click', function() {
+                                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                const optionCount = optionsList.children.length + 1;
+                                                const optionItem = document.createElement('div');
+                                                optionItem.className = 'option-item flex items-center gap-2';
+                                                optionItem.innerHTML = `
+                                                    <input type="text" value="选项${optionCount}" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                                    <button class="remove-option w-8 h-8 text-gray-400 hover:text-red-500 transition-colors">
+                                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                                    </button>
+                                                `;
+                                                optionsList.appendChild(optionItem);
+                                                lucide.createIcons();
+                                                
+                                                // 移除选项按钮点击事件
+                                                const removeOptionBtn = optionItem.querySelector('.remove-option');
+                                                removeOptionBtn.addEventListener('click', function() {
+                                                    optionItem.remove();
+                                                    // 更新选项编号
+                                                    const optionItems = optionsList.querySelectorAll('.option-item');
+                                                    optionItems.forEach((item, index) => {
+                                                        item.querySelector('input').value = `选项${index + 1}`;
+                                                    });
+                                                });
+                                            });
+                                            
+                                            // 移除选项按钮点击事件
+                                            const removeOptionBtns = optionsDiv.querySelectorAll('.remove-option');
+                                            removeOptionBtns.forEach(btn => {
+                                                btn.addEventListener('click', function() {
+                                                    const optionItem = btn.closest('.option-item');
+                                                    optionItem.remove();
+                                                    // 更新选项编号
+                                                    const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                    const optionItems = optionsList.querySelectorAll('.option-item');
+                                                    optionItems.forEach((item, index) => {
+                                                        item.querySelector('input').value = `选项${index + 1}`;
+                                                    });
+                                                });
+                                            });
+                                        } else if (fieldType === '文件上传') {
+                                            // 可以在这里添加文件上传控件
+                                        }
+                                    });
+                                });
+                            }
+                            
+                            // 加载步骤
+                            if (architecture.steps) {
+                                architecture.steps.forEach((step, index) => {
+                                    approverCount++;
+                                    const colorIndex = index % nodeColors.length;
+                                    const color = nodeColors[colorIndex];
+                                    const bgColor = color === 'primary' ? 'blue' : color.replace('-500', '');
+                                    
+                                    const node = document.createElement('div');
+                                    node.className = 'approval-node fade-in';
+                                    node.innerHTML = `
+                                        <div class="p-4 bg-white rounded-xl border-2 border-${color} shadow-sm">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-8 h-8 bg-${color} text-white rounded-lg flex items-center justify-center text-sm font-bold">${index + 1}</div>
+                                                    <div>
+                                                        <input type="text" value="${step.step_name}" class="font-semibold text-gray-900 text-sm w-full p-1 border-1 border-gray-200 rounded">
+                                                        <p class="text-xs text-gray-500 mt-0.5">必须审批</p>
+                                                    </div>
+                                                </div>
+                                                <button class="remove-approver text-gray-400 hover:text-red-500 transition-colors">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <select class="approver-select px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm flex-1">
+                                                    <option value="">选择审批人</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    `;
+                                    approverList.appendChild(node);
+                                    attachApproverEvents(node, bgColor);
+                                });
+                            }
+                            
+                            lucide.createIcons();
+                            // 延迟更新审批人选择框，确保DOM已更新
+                            setTimeout(() => {
+                                updateApproverSelects();
+                            }, 100);
+                            
+                            // 显示配置页面
+                            listPage.classList.add('hidden');
+                            configPage.classList.remove('hidden');
+                            window.scrollTo(0, 0);
+                        } else {
+                            alert('加载流程配置失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载流程配置失败:', error);
+                        alert('网络错误，请稍后重试');
+                    });
+            };
+
+            // 切换流程状态
+            window.toggleFlowStatus = function(architectureId, currentStatus) {
+                const newStatus = currentStatus === 'enabled' ? 'disabled' : 'enabled';
+                const action = currentStatus === 'enabled' ? '停用' : '启用';
+                
+                if (confirm(`确定要${action}这个流程吗？`)) {
+                    fetch(`http://localhost:5000/api/flows/architecture/${architectureId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应错误');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            alert(`流程${action}成功`);
+                            loadFlowData();
+                        } else {
+                            alert(`${action}失败: ` + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`${action}流程失败:`, error);
+                        alert('网络错误，请稍后重试');
+                    });
+                }
+            };
+
+            // 删除流程
+            window.deleteFlow = function(architectureId) {
+                if (confirm('确定要删除这个流程吗？')) {
+                    fetch(`http://localhost:5000/api/flows/architecture/${architectureId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('流程删除成功');
+                            loadFlowData();
+                        } else {
+                            alert('删除失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('删除流程失败:', error);
+                        alert('网络错误，请稍后重试');
+                    });
+                }
+            };
+
+            // 加载审批人
+            function loadApprovers() {
+                fetch('http://localhost:5000/api/users')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.approvers = data.users;
+                            updateApproverSelects();
+                        } else {
+                            console.error('加载审批人员数据失败:', data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载审批人员数据失败:', error);
+                    });
+            }
+            
+            // 加载已启用的薪资方案
+            function loadEnabledSalaryPlans(fieldCount) {
+                fetch('http://localhost:5000/api/salary-plans?status=enabled')
+                    .then(response => response.json())
+                    .then(data => {
+                        const select = document.getElementById(`salary-plan-select-${fieldCount}`);
+                        if (select) {
+                            select.innerHTML = '';
+                            if (data.success && data.data.length > 0) {
+                                select.innerHTML = '<option value="">请选择薪资方案</option>';
+                                data.data.forEach(plan => {
+                                    const option = document.createElement('option');
+                                    option.value = plan.id;
+                                    option.textContent = plan.plan_name;
+                                    select.appendChild(option);
+                                });
+                            } else {
+                                select.innerHTML = '<option value="">暂无启用的薪资方案</option>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载薪资方案数据失败:', error);
+                        const select = document.getElementById(`salary-plan-select-${fieldCount}`);
+                        if (select) {
+                            select.innerHTML = '<option value="">加载失败，请刷新页面</option>';
+                        }
+                    });
+            }
+
+            // 加载已启用的合同
+            function loadEnabledContracts(fieldCount) {
+                fetch('http://localhost:5000/api/contracts')
+                    .then(response => response.json())
+                    .then(data => {
+                        const select = document.getElementById(`contract-select-${fieldCount}`);
+                        if (select) {
+                            select.innerHTML = '';
+                            if (data.success && data.data.length > 0) {
+                                select.innerHTML = '<option value="">请选择合同</option>';
+                                data.data.forEach(contract => {
+                                    if (contract.status === 'active') {
+                                        const option = document.createElement('option');
+                                        option.value = contract.id;
+                                        option.textContent = contract.name;
+                                        select.appendChild(option);
+                                    }
+                                });
+                            } else {
+                                select.innerHTML = '<option value="">暂无启用的合同</option>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载合同数据失败:', error);
+                        const select = document.getElementById(`contract-select-${fieldCount}`);
+                        if (select) {
+                            select.innerHTML = '<option value="">加载失败，请刷新页面</option>';
+                        }
+                    });
+            }
+
+            // 更新审批人选择框
+            function updateApproverSelects() {
+                if (!window.approvers) {
+                    return;
+                }
+                
+                const selects = document.querySelectorAll('.approver-select');
+                selects.forEach(select => {
+                    select.innerHTML = '<option value="">选择审批人</option>';
+                    window.approvers.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name}`;
+                        select.appendChild(option);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

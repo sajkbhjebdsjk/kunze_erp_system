@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>骑手合同签署系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 13px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .contract-preview {
+            padding: 28px 30px;
+            background: #fafafa;
+            max-height: 60vh;
+            overflow-y: auto;
+            border-bottom: 1px solid #eee;
+        }
+
+        .contract-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+            letter-spacing: 3px;
+        }
+
+        .contract-body {
+            font-size: 12.5px;
+            line-height: 1.9;
+            color: #333;
+        }
+
+        .contract-body p { margin-bottom: 4px; text-indent: 22px; }
+        .contract-body .no-indent { text-indent: 0; }
+        .contract-body .section-title { font-weight: bold; margin-top: 8px; margin-bottom: 2px; text-indent: 22px; }
+
+        .highlight-name {
+            color: #d35400;
+            font-weight: bold;
+            background: #fff3e0;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .sign-section {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 2px solid #333;
+        }
+
+        .sign-section .sign-label {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .sign-table-inline {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .sign-col-inline {
+            flex: 1;
+        }
+
+        .sign-col-inline h4 {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 6px;
+            font-weight: normal;
+        }
+
+        .sign-image-preview {
+            max-height: 55px;
+            border-radius: 4px;
+            margin: 6px 0;
+        }
+
+        .sign-form {
+            padding: 24px 30px;
+        }
+
+        .form-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-title::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group label .required { color: #e74c3c; margin-left: 2px; }
+
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 10px 13px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: #fff;
+            color: #333;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="tel"]:focus,
+        .form-group input[type="password"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .signature-area {
+            margin-bottom: 16px;
+        }
+
+        .signature-area label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .signature-area label .required { color: #e74c3c; margin-left: 2px; }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .canvas-wrapper canvas {
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+            width: 100% !important;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ccc;
+            font-size: 14px;
+            pointer-events: none;
+            user-select: none;
+            text-align: center;
+        }
+
+        .canvas-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-canvas-clear {
+            padding: 6px 16px;
+            border: 1.5px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .btn-canvas-clear:hover { background: #eee; border-color: #bbb; }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .btn-sign {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 34px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-sign:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-sign:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result-box.error {
+            display: block;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+        }
+
+        .result-box .result-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-box.error .result-title { color: #e74c3c; }
+
+        .result-box .result-info {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form-section-group {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            background: #f8f9fb;
+            border-radius: 10px;
+            border: 1px solid #eef0f5;
+        }
+
+        .form-section-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .loading-overlay {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading-overlay .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        /* ========== 签署成功视图样式 ========== */
+        .success-view {
+            display: none;
+        }
+
+        .success-view.active {
+            display: block;
+        }
+
+        .success-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .success-header h1 {
+            font-size: 22px;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .success-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .success-banner .check-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 28px;
+        }
+
+        .success-banner h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .success-banner p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .signed-contract-card {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            overflow: hidden;
+        }
+
+        .signed-info-bar {
+            background: #f0fdf4;
+            border-bottom: 1px solid #bbf7d0;
+            padding: 14px 20px;
+        }
+
+        .signed-info-bar .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 4px 12px;
+            font-size: 13px;
+        }
+
+        .signed-info-bar .info-grid .label { color: #6b7280; }
+        .signed-info-bar .info-grid .value { font-weight: 600; color: #1e293b; }
+        .signed-info-bar .info-grid .value.mono { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; }
+
+        .signed-contract-body {
+            padding: 24px 20px;
+            max-height: 55vh;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .signed-contract-body .contract-title-s {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 14px;
+            letter-spacing: 3px;
+        }
+
+        .signed-contract-body .contract-body-s {
+            font-size: 12px;
+            line-height: 1.85;
+            color: #333;
+        }
+
+        .signed-contract-body .contract-body-s p { margin-bottom: 4px; text-indent: 20px; }
+
+        .signed-contract-body .sign-section-s {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 2px solid #333;
+        }
+
+        .signed-contract-body .sign-section-s .sign-label-s {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .signed-contract-body .sign-table-inline-s {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 16px;
+        }
+
+        .signed-contract-body .sign-col-inline-s { flex: 1; }
+        .signed-contract-body .sign-col-inline-s h4 {
+            font-size: 11.5px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+
+        .acknowledge-bar {
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .btn-acknowledge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 320px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-acknowledge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-acknowledge:active {
+            transform: scale(0.98);
+        }
+
+        .acknowledge-hint {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .header h1 { font-size: 20px; }
+            .contract-preview { padding: 20px 18px; max-height: 50vh; }
+            .sign-form { padding: 18px 20px; }
+            .form-row { flex-direction: column; gap: 0; }
+            .form-group { min-width: 100%; }
+            .sign-table-inline { flex-direction: column; gap: 16px; }
+            .btn-sign { width: 100%; justify-content: center; }
+            .signed-contract-body { padding: 18px 14px; max-height: 50vh; }
+            .signed-info-bar { padding: 12px 16px; }
+            .sign-table-inline-s { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 签署视图（默认显示）========== -->
+    <div class="container" id="signView">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 骑手合同签署系统</h1>
+            <p>配送服务合作协议 · 手写签名 · 动态模板</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <!-- Contract Preview Area -->
+            <div class="contract-preview" id="contractPreviewArea">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <p>正在加载合同内容...</p>
+                </div>
+
+                <!-- Contract Content (loaded dynamically) -->
+                <div id="contractContent" style="display:none;">
+                    <div class="contract-title" id="contractTitleText">合同标题</div>
+                    <div class="contract-body" id="contractBodyText">
+                        <!-- Dynamic content will be inserted here -->
+                    </div>
+
+                    <!-- Sign Section in Preview -->
+                    <div class="sign-section">
+                        <div class="sign-label">（以下为签署栏）</div>
+                        <div class="sign-table-inline">
+                            <div class="sign-col-inline">
+                                <h4>公司盖章：</h4>
+                            </div>
+                            <div class="sign-col-inline">
+                                <h4>乙方（承揽人）签字：</h4>
+                                <div id="previewSignContainer">
+                                    <span id="previewSignText" style="color:#999;font-size:13px;">待手写签字</span>
+                                    <img id="previewSignImg" class="sign-image-preview" style="display:none;">
+                                </div>
+                                <h4 id="previewDateLabel">日期：____年____月____日</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sign Form -->
+            <div class="sign-form" id="signFormArea">
+                <div class="form-title">✍️ 填写签署信息</div>
+
+                <!-- Basic Info -->
+                <div class="form-section-group">
+                    <div class="form-section-label">📋 基本信息</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>乙方（承揽人）姓名<span class="required">*</span></label>
+                            <input type="text" id="party_b_name" placeholder="请输入您的真实姓名" maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label>身份证号<span class="required">*</span></label>
+                            <input type="text" id="id_card" placeholder="请输入身份证号码" maxlength="18">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="form-section-group">
+                    <div class="form-section-label">📱 乙方联系方式（第十二条）</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>电话（手机）<span class="required">*</span></label>
+                            <input type="tel" id="phone" placeholder="请输入手机号" maxlength="11">
+                        </div>
+                        <div class="form-group">
+                            <label>地址<span class="required">*</span></label>
+                            <input type="text" id="address" placeholder="请输入详细地址" maxlength="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="form-section-group">
+                    <div class="form-section-label">👤 紧急联系人</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>姓名<span class="required">*</span></label>
+                            <input type="text" id="emergency_name" placeholder="紧急联系人姓名" maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label>电话（手机）<span class="required">*</span></label>
+                            <input type="tel" id="emergency_phone" placeholder="手机号" maxlength="11">
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:100%;">
+                        <label>地址<span class="required">*</span></label>
+                        <input type="text" id="emergency_address" placeholder="紧急联系人地址" maxlength="100">
+                    </div>
+                </div>
+
+                <!-- Signature Pad -->
+                <div class="form-section-group">
+                    <div class="form-section-label">✍️ 手写签名</div>
+                    <div class="signature-area">
+                        <label>请在下方画板中手写签名<span class="required">*</span></label>
+                        <div class="canvas-wrapper">
+                            <canvas id="signatureCanvas" width="350" height="140"></canvas>
+                            <div class="canvas-hint" id="canvasHint">请在上方区域手写签名</div>
+                        </div>
+                        <div class="canvas-btns">
+                            <button type="button" class="btn-canvas-clear" onclick="clearCanvas()">🗑️ 清除重签</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="action-bar">
+                    <button class="btn-sign" id="btnSign" onclick="submitContract()">
+                        ✍️ 确认签署并提交
+                    </button>
+                </div>
+
+                <!-- Result Box (仅用于错误提示) -->
+                <div class="result-box" id="resultBox">
+                    <div class="result-title" id="resultTitle"></div>
+                    <div class="result-info" id="resultInfo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 签署成功视图（签署后显示）========== -->
+    <div class="container success-view" id="successView">
+        <div class="success-header">
+            <h1>📋 骑手合同签署系统</h1>
+        </div>
+
+        <!-- Success Banner -->
+        <div class="success-banner">
+            <div class="check-icon">✅</div>
+            <h2>合同已成功签署</h2>
+            <p>合同编号：<span id="successContractNo" style="font-family:monospace;font-size:12px;"></span></p>
+        </div>
+
+        <!-- Signed Contract Card -->
+        <div class="signed-contract-card">
+            <!-- Info Bar -->
+            <div class="signed-info-bar">
+                <div class="info-grid">
+                    <span class="label">合同编号：</span><span class="value mono" id="infoContractNo"></span>
+                    <span class="label">乙方姓名：</span><span class="value" id="infoPartyBName"></span>
+                    <span class="label">签署时间：</span><span class="value" id="infoSignTime"></span>
+                    <span class="label">PDF状态：</span><span class="value" id="infoPdfStatus"></span>
+                </div>
+            </div>
+
+            <!-- Signed Contract Body (Full Page) -->
+            <div class="signed-contract-body" id="signedContractBodyArea">
+                <div class="contract-title-s" id="signedContractTitle">配送服务合作协议</div>
+                <div class="contract-body-s" id="signedContractBodyContent">
+                    <p style="text-align:center;color:#999;padding:40px 0;">正在加载已签署的合同内容...</p>
+                </div>
+
+                <!-- Sign Section in Signed View -->
+                <div class="sign-section-s" id="signedSignSection">
+                    <div class="sign-label-s">（以下为签署栏）</div>
+                    <div class="sign-table-inline-s">
+                        <div class="sign-col-inline-s">
+                            <h4>公司盖章：</h4>
+                        </div>
+                        <div class="sign-col-inline-s">
+                            <h4>乙方（承揽人）签字：<span id="signedPartyBNameLabel" style="color:#d35400;font-weight:bold;"></span></h4>
+                            <h4 id="signedDateLabel" style="margin-top:4px;"></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acknowledge Button Bar -->
+            <div class="acknowledge-bar">
+                <button class="btn-acknowledge" id="btnAcknowledge" onclick="handleAcknowledge()">
+                    ✅ 我已知晓
+                </button>
+                <p class="acknowledge-hint">点击上方按钮关闭本页面</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        const templateId = getUrlParam('template_id');
+        const API_BASE = 'http://localhost:5000';
+
+        let savedContractData = null;
+
+        // Canvas signature
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasHint = document.getElementById('canvasHint');
+        let isDrawing = false;
+        let hasSignature = false;
+        let lastX = 0, lastY = 0;
+
+        function initCanvas() {
+            ctx.strokeStyle = '#1a1a2e';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            clearCanvas();
+
+            // Resize canvas for mobile
+            function resizeCanvas() {
+                const wrapper = canvas.parentElement;
+                const rect = wrapper.getBoundingClientRect();
+                canvas.width = rect.width * window.devicePixelRatio;
+                canvas.height = 140 * window.devicePixelRatio;
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                ctx.strokeStyle = '#1a1a2e';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                if (!hasSignature) clearCanvas();
+            }
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width / window.devicePixelRatio;
+                const scaleY = canvas.height / rect.height / window.devicePixelRatio;
+                if (e.touches) {
+                    return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+                }
+                return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+            }
+
+            function startDraw(e) { e.preventDefault(); isDrawing = true; const pos = getPos(e); lastX = pos.x; lastY = pos.y; canvasHint.style.display = 'none'; }
+            function draw(e) {
+                if (!isDrawing) return; e.preventDefault();
+                const pos = getPos(e);
+                ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y); ctx.stroke();
+                lastX = pos.x; lastY = pos.y; hasSignature = true; updatePreviewSignature();
+            }
+            function endDraw() { isDrawing = false; }
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', endDraw);
+            canvas.addEventListener('mouseleave', endDraw);
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', endDraw);
+        }
+
+        function clearCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, rect.width, rect.height);
+            hasSignature = false; canvasHint.style.display = 'block';
+            document.getElementById('previewSignText').style.display = 'inline';
+            document.getElementById('previewSignImg').style.display = 'none';
+            document.getElementById('previewDateLabel').textContent = '日期：____年____月____日';
+        }
+
+        function getSignatureDataUrl() {
+            if (!hasSignature) return null;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width / window.devicePixelRatio;
+            tempCanvas.height = canvas.height / window.devicePixelRatio;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#ffffff'; tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        function updatePreviewSignature() {
+            if (!hasSignature) return;
+            const dataUrl = getSignatureDataUrl();
+            if (dataUrl) {
+                const imgEl = document.getElementById('previewSignImg');
+                imgEl.src = dataUrl; imgEl.style.display = 'block';
+                document.getElementById('previewSignText').style.display = 'none';
+                const now = new Date();
+                document.getElementById('previewDateLabel').textContent = '日期：' + now.getFullYear() + '年' + String(now.getMonth()+1).padStart(2,'0') + '月' + String(now.getDate()).padStart(2,'0') + '日';
+            }
+        }
+
+        // Bind preview updates
+        const bindPreview = (inputId, previewId, defaultText) => {
+            const el = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            if (el && preview) {
+                el.addEventListener('input', () => preview.textContent = el.value.trim() || defaultText);
+            }
+        };
+
+        // Load contract from backend
+        async function loadContract() {
+            if (!templateId) {
+                showError('❌ 缺少合同模板ID参数<br><br>请从后台管理系统生成正确的签署链接');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/contracts/${templateId}`);
+                const data = await response.json();
+
+                console.log('API返回数据:', data);
+
+                if (data.success && data.data) {
+                    const contract = data.data;
+
+                    // Update title
+                    document.getElementById('contractTitleText').textContent = contract.name || '配送服务合作协议';
+                    document.title = contract.name + ' - 骑手合同签署';
+
+                    let bodyContent = contract.content;
+
+                    if (!bodyContent || bodyContent.trim() === '') {
+                        bodyContent = `
+                            <div style="text-align:center;padding:30px;background:#fff3e0;border:2px dashed #ff9800;border-radius:12px;margin:20px 0;">
+                                <div style="font-size:48px;margin-bottom:12px;">📝</div>
+                                <h3 style="color:#e65100;margin-bottom:10px;">合同内容为空</h3>
+                                <p style="color:#666;line-height:1.8;">
+                                    该合同模板暂无内容。<br>
+                                    请联系管理员在<strong>后台管理系统 → 合同配置台</strong>中：<br>
+                                    <br>
+                                    ① 上传包含内容的 Word 文档（.doc/.docx）<br>
+                                    或<br>
+                                    ② 点击"编辑"按钮手动填写/粘贴合同内容<br>
+                                    <br>
+                                    <span style="color:#999;font-size:12px;">合同编号：${contract.id} | 合同名称：${contract.name}</span>
+                                </p>
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('contractBodyText').innerHTML = bodyContent;
+
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    document.getElementById('contractContent').style.display = 'block';
+
+                    bindPreview('party_b_name', 'previewName', '待填写');
+                    bindPreview('id_card', 'previewIdCard', '待填写');
+                    bindPreview('phone', 'previewPhone', '待填写');
+                    bindPreview('address', 'previewAddress', '待填写');
+                    bindPreview('emergency_name', 'previewEmergencyName', '待填写');
+                    bindPreview('emergency_phone', 'previewEmergencyPhone', '待填写');
+                    bindPreview('emergency_address', 'previewEmergencyAddress', '待填写');
+
+                } else {
+                    showError('❌ 加载合同失败：<br><br>' + (data.message || '未知错误') + '<br><br>请检查合同模板ID是否正确：' + templateId);
+                }
+            } catch (error) {
+                console.error('Load contract error:', error);
+                showError('❌ 网络错误<br><br>无法连接到服务器，请检查：<br>1. 后端服务是否启动（端口5000）<br>2. 网络连接是否正常');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingOverlay').innerHTML = `<p style="color:#e74c3c;">${message}</p>`;
+        }
+
+        function showResult(type, title, info) {
+            const box = document.getElementById('resultBox');
+            box.className = `result-box ${type}`;
+            document.getElementById('resultTitle').innerHTML = title;
+            document.getElementById('resultInfo').innerHTML = info;
+        }
+
+        // 切换到签署成功视图
+        function showSuccessView(data) {
+            savedContractData = data;
+
+            // 填充信息栏
+            document.getElementById('successContractNo').textContent = data.contract_no;
+            document.getElementById('infoContractNo').textContent = data.contract_no;
+            document.getElementById('infoPartyBName').textContent = data.party_b_name;
+            document.getElementById('infoSignTime').textContent = data.sign_time;
+            document.getElementById('infoPdfStatus').textContent = data.pdf_generated ? '✅ 已生成' : '⚠️ 生成中';
+            document.getElementById('infoPdfStatus').style.color = data.pdf_generated ? '#16a34a' : '#f59e0b';
+
+            // 填充已签署合同内容
+            document.getElementById('signedContractTitle').textContent = document.getElementById('contractTitleText').textContent || '配送服务合作协议';
+
+            // 复制合同正文到签署视图
+            const originalBody = document.getElementById('contractBodyText').innerHTML;
+            document.getElementById('signedContractBodyContent').innerHTML = originalBody;
+
+            // 填充签署栏信息
+            const partyBName = document.getElementById('party_b_name').value.trim();
+            document.getElementById('signedPartyBNameLabel').textContent = partyBName;
+            const now = new Date();
+            document.getElementById('signedDateLabel').textContent = '日期：' + now.getFullYear() + '年' + String(now.getMonth()+1).padStart(2,'0') + '月' + String(now.getDate()).padStart(2,'0') + '日';
+
+            // 切换视图：隐藏签署视图，显示成功视图
+            document.getElementById('signView').style.display = 'none';
+            const successView = document.getElementById('successView');
+            successView.classList.add('active');
+
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+        }
+
+        // 我已知晓 - 关闭网页
+        function handleAcknowledge() {
+            const btn = document.getElementById('btnAcknowledge');
+            btn.textContent = '正在关闭...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                window.close();
+                // 如果window.close()被浏览器阻止（非脚本打开的页面），给用户提示
+                setTimeout(() => {
+                    btn.textContent = '请手动关闭此页面';
+                    btn.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+                }, 500);
+            }, 300);
+        }
+
+        async function submitContract() {
+            const partyBName = document.getElementById('party_b_name').value.trim();
+            const idCard = document.getElementById('id_card').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const emergencyName = document.getElementById('emergency_name').value.trim();
+            const emergencyPhone = document.getElementById('emergency_phone').value.trim();
+            const emergencyAddress = document.getElementById('emergency_address').value.trim();
+
+            if (!partyBName) { showResult('error', '❌ 提示', '请输入乙方（承揽人）姓名'); return; }
+            if (!idCard) { showResult('error', '❌ 提示', '请输入身份证号'); return; }
+            if (!phone) { showResult('error', '❌ 提示', '请输入电话（手机）'); return; }
+            if (!address) { showResult('error', '❌ 提示', '请输入地址'); return; }
+            if (!emergencyName) { showResult('error', '❌ 提示', '请输入紧急联系人姓名'); return; }
+            if (!emergencyPhone) { showResult('error', '❌ 提示', '请输入紧急联系人电话'); return; }
+            if (!emergencyAddress) { showResult('error', '❌ 提示', '请输入紧急联系人地址'); return; }
+
+            const signatureData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> 正在提交...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/rider-contracts/sign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        party_b_name: partyBName,
+                        id_card: idCard,
+                        phone: phone,
+                        address: address,
+                        emergency_name: emergencyName,
+                        emergency_phone: emergencyPhone,
+                        emergency_address: emergencyAddress,
+                        signature_image: signatureData,
+                        template_id: templateId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const data = result.data;
+
+                    // 直接跳转到已签署合同视图
+                    showSuccessView(data);
+
+                    if (data.pdf_generated) {
+                        console.log('✅ PDF已生成:', data.download_url);
+                    }
+                } else {
+                    showResult('error', '❌ 签署失败', result.message || '未知错误');
+                    btn.disabled = false;
+                    btn.innerHTML = '✍️ 确认签署并提交';
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+                showResult('error', '❌ 网络错误', '无法连接到服务器，请稍后重试。');
+                btn.disabled = false;
+                btn.innerHTML = '✍️ 确认签署并提交';
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCanvas();
+            loadContract();
+        });
+    </script>
+</body>
+</html>

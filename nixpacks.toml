@@ -1,0 +1,16 @@
+# Nixpacks 配置 - Railway 平台构建配置
+# 文档: https://nixpacks.com/docs
+
+[phases.setup]
+nixPkgs = ["python310", "gcc", "mysql-client"]
+
+[phases.install]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
+
+[start]
+cmd = "gunicorn --config gunicorn.conf.py backend.app:app"
+
+[variables]
+FLASK_ENV = "production"
+PYTHONUNBUFFERED = "1"
+PYTHONDONTWRITEBYTECODE = "1"

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>流程申请 - 移动版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        emerald: '#10b981',
+                        rose: '#f43f5e',
+                        dark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        .glass-header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .form-field { transition: all 0.3s ease; }
+        .form-field:focus-within { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="glass-header px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <button id="backBtn" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-white/10">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-400"></i>
+                </button>
+                <div>
+                    <h1 class="text-xl font-display font-bold" id="flowTitle">流程申请</h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Flow Application</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Form Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pb-24">
+            <div class="px-6 py-6 space-y-6">
+                <!-- 流程信息 -->
+                <div class="bg-slate-800/50 border border-white/10 rounded-xl p-4">
+                    <h2 class="text-lg font-bold mb-2">流程信息</h2>
+                    <p class="text-sm text-slate-400" id="flowDescription">加载中...</p>
+                </div>
+
+                <!-- 表单 -->
+                <div class="space-y-4" id="formContainer">
+                    <!-- 表单字段将通过JavaScript动态生成 -->
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <i data-lucide="loader-2" class="w-12 h-12 text-slate-500 animate-spin"></i>
+                        <p class="text-slate-500 mt-4">加载中...</p>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="pt-4">
+                    <button id="submitBtn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold transition-colors">
+                        提交申请
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 h-20 flex justify-center items-center z-50 bg-slate-900/90 backdrop-blur-xl border-t border-white/10">
+            <div class="flex justify-between items-center w-full px-6">
+                <button class="flex flex-col items-center justify-center text-primary" onclick="window.location.href='mobile-approval.html'">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">首页</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-approval-page.html'">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">审批</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-my-page.html'">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">我的</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 transition-all duration-500 z-[100] w-[280px]">
+        <div class="bg-primary/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <p class="text-xs font-bold leading-tight" id="toast-message">操作成功！</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            let toastTimer = null;
+
+            // 显示Toast通知
+            function showToast(message) {
+                if(toastTimer) clearTimeout(toastTimer);
+                toastMessage.textContent = message;
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                toastTimer = setTimeout(() => {
+                    toast.classList.add('-translate-y-full', 'opacity-0');
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                }, 2500);
+            }
+            
+            // 加载薪资方案选项
+            function loadSalaryPlansForField(fieldId) {
+                fetch('http://localhost:5000/api/salary-plans?status=enabled')
+                    .then(response => response.json())
+                    .then(data => {
+                        const select = document.getElementById(`salary-plan-select-${fieldId}`);
+                        if (select) {
+                            select.innerHTML = '';
+                            if (data.success && data.data.length > 0) {
+                                select.innerHTML = '<option value="">请选择薪资方案</option>';
+                                data.data.forEach(plan => {
+                                    const option = document.createElement('option');
+                                    option.value = plan.id;
+                                    option.textContent = plan.plan_name;
+                                    select.appendChild(option);
+                                });
+                            } else {
+                                select.innerHTML = '<option value="">暂无启用的薪资方案</option>';
+                            }
+                            // 加载完成后恢复表单数据
+                            restoreFormData();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载薪资方案数据失败:', error);
+                        const select = document.getElementById(`salary-plan-select-${fieldId}`);
+                        if (select) {
+                            select.innerHTML = '<option value="">加载失败，请刷新页面</option>';
+                        }
+                    });
+            }
+
+            // 加载合同选项
+            function loadContractsForField(fieldId) {
+                fetch('http://localhost:5000/api/contracts')
+                    .then(response => response.json())
+                    .then(data => {
+                        const select = document.getElementById(`contract-select-${fieldId}`);
+                        if (select) {
+                            select.innerHTML = '';
+                            if (data.success && data.data.length > 0) {
+                                select.innerHTML = '<option value="">请选择合同</option>';
+                                data.data.forEach(contract => {
+                                    if (contract.status === 'active') {
+                                        const option = document.createElement('option');
+                                        option.value = contract.id;
+                                        option.textContent = contract.name;
+                                        select.appendChild(option);
+                                    }
+                                });
+                            } else {
+                                select.innerHTML = '<option value="">暂无启用的合同</option>';
+                            }
+                            // 加载完成后恢复表单数据
+                            restoreFormData();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载合同数据失败:', error);
+                        const select = document.getElementById(`contract-select-${fieldId}`);
+                        if (select) {
+                            select.innerHTML = '<option value="">加载失败，请刷新页面</option>';
+                        }
+                    });
+            }
+
+            // 获取URL参数
+            function getUrlParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+            // 加载流程详情
+            function loadFlowDetails() {
+                const flowId = getUrlParam('id');
+                if (!flowId) {
+                    showToast('缺少流程ID');
+                    return;
+                }
+
+                // 清除当前流程的合同相关数据，避免不同流程间信息残留
+                localStorage.removeItem(`contract_signed_${flowId}`);
+                localStorage.removeItem(`contract_id_${flowId}`);
+
+                const formContainer = document.getElementById('formContainer');
+                
+                // 显示加载状态
+                formContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <i data-lucide="loader-2" class="w-12 h-12 text-slate-500 animate-spin"></i>
+                        <p class="text-slate-500 mt-4">加载中...</p>
+                    </div>
+                `;
+                lucide.createIcons();
+
+                // 从后端API获取流程详情
+                fetch(`http://localhost:5000/api/flows/architecture/${flowId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应错误');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const architecture = data.architecture;
+                            document.getElementById('flowTitle').textContent = architecture.flow_name;
+                            document.getElementById('flowDescription').textContent = architecture.description || '暂无描述';
+                            
+                            // 生成表单字段
+                            generateFormFields(architecture.fields);
+                        } else {
+                            console.error('加载流程详情失败');
+                            formContainer.innerHTML = `
+                                <div class="flex flex-col items-center justify-center py-12">
+                                    <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500"></i>
+                                    <p class="text-slate-500 mt-4">加载失败，请重试</p>
+                                </div>
+                            `;
+                            lucide.createIcons();
+                            showToast('加载流程详情失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载流程详情失败:', error);
+                        formContainer.innerHTML = `
+                            <div class="flex flex-col items-center justify-center py-12">
+                                <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500"></i>
+                                <p class="text-slate-500 mt-4">加载失败，请重试</p>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        showToast('加载流程详情失败');
+                    });
+            }
+
+            // 生成表单字段
+            function generateFormFields(fields) {
+                const formContainer = document.getElementById('formContainer');
+                formContainer.innerHTML = '';
+
+                if (!fields || fields.length === 0) {
+                    formContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8">
+                            <i data-lucide="file-text" class="w-12 h-12 text-slate-500"></i>
+                            <p class="text-slate-500 mt-4">暂无表单字段</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                fields.forEach((field, index) => {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'form-field bg-slate-800/50 border border-white/10 rounded-xl p-4';
+                    
+                    let fieldHtml = `
+                        <label class="block text-sm font-medium text-slate-300 mb-2">${field.field_name}</label>
+                    `;
+
+                    // 检查字段名称是否包含文件相关关键词
+                    const isFileField = field.field_name.includes('文件') || field.field_name.includes('图片') || field.field_name.includes('上传');
+
+                    // 根据字段类型或字段名称生成不同的表单控件
+                    if (isFileField || field.field_type === '文件上传') {
+                        // 文件上传控件
+                        fieldHtml += `
+                            <div class="border-2 border-dashed border-white/10 rounded-lg p-4 text-center">
+                                <i data-lucide="upload" class="w-10 h-10 text-slate-500 mx-auto mb-2"></i>
+                                <p class="text-sm text-slate-400 mb-2">点击或拖拽文件到此处上传</p>
+                                <input type="file" name="field_${field.id}" class="hidden" id="file_${field.id}">
+                                <label for="file_${field.id}" class="inline-block bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg cursor-pointer transition-colors">
+                                    选择文件
+                                </label>
+                            </div>
+                        `;
+                    } else {
+                        switch (field.field_type) {
+                            case '文本':
+                                fieldHtml += `
+                                    <input type="text" name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="请输入${field.field_name}">
+                                `;
+                                break;
+                            case '数字':
+                                fieldHtml += `
+                                    <input type="number" name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="请输入${field.field_name}">
+                                `;
+                                break;
+                            case '日期':
+                                fieldHtml += `
+                                    <input type="date" name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                `;
+                                break;
+                            case '单选':
+                                let selectOptions = `<option value="">请选择${field.field_name}</option>`;
+                                if (field.options && field.options.length > 0) {
+                                    field.options.forEach((option, index) => {
+                                        selectOptions += `<option value="${option}">${option}</option>`;
+                                    });
+                                } else {
+                                    selectOptions += `<option value="option1">选项1</option>
+                                        <option value="option2">选项2</option>
+                                        <option value="option3">选项3</option>`;
+                                }
+                                fieldHtml += `
+                                    <select name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        ${selectOptions}
+                                    </select>
+                                `;
+                                break;
+                            case '多选':
+                                let checkboxOptions = '';
+                                if (field.options && field.options.length > 0) {
+                                    field.options.forEach((option, index) => {
+                                        checkboxOptions += `<label class="flex items-center gap-2">
+                                            <input type="checkbox" name="field_${field.id}_${index+1}" value="${option}" class="w-4 h-4 rounded border-white/10 bg-slate-900 text-primary focus:ring-primary/30">
+                                            <span class="text-sm">${option}</span>
+                                        </label>`;
+                                    });
+                                } else {
+                                    checkboxOptions += `<label class="flex items-center gap-2">
+                                            <input type="checkbox" name="field_${field.id}_1" value="option1" class="w-4 h-4 rounded border-white/10 bg-slate-900 text-primary focus:ring-primary/30">
+                                            <span class="text-sm">选项1</span>
+                                        </label>
+                                        <label class="flex items-center gap-2">
+                                            <input type="checkbox" name="field_${field.id}_2" value="option2" class="w-4 h-4 rounded border-white/10 bg-slate-900 text-primary focus:ring-primary/30">
+                                            <span class="text-sm">选项2</span>
+                                        </label>
+                                        <label class="flex items-center gap-2">
+                                            <input type="checkbox" name="field_${field.id}_3" value="option3" class="w-4 h-4 rounded border-white/10 bg-slate-900 text-primary focus:ring-primary/30">
+                                            <span class="text-sm">选项3</span>
+                                        </label>`;
+                                }
+                                fieldHtml += `
+                                    <div class="space-y-2">
+                                        ${checkboxOptions}
+                                    </div>
+                                `;
+                                break;
+                            case '薪资方案':
+                                // 薪资方案字段
+                                fieldHtml += `
+                                    <select name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" id="salary-plan-select-${field.id}">
+                                        <option value="">加载中...</option>
+                                    </select>
+                                `;
+                                break;
+                            case '劳务合同签署':
+                                // 劳务合同签署字段
+                                fieldHtml += `
+                                    <div class="space-y-2">
+                                        <select name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" id="contract-select-${field.id}">
+                                            <option value="">请选择合同</option>
+                                        </select>
+                                        <button type="button" class="w-full bg-primary hover:bg-primary/90 text-white py-2 rounded-lg text-sm font-medium transition-colors sign-contract-btn" data-field-id="${field.id}">
+                                            签署合同
+                                        </button>
+                                    </div>
+                                `;
+                                break;
+                            default:
+                                fieldHtml += `
+                                    <input type="text" name="field_${field.id}" class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="请输入${field.field_name}">
+                                `;
+                        }
+                    }
+
+                    fieldDiv.innerHTML = fieldHtml;
+                formContainer.appendChild(fieldDiv);
+            });
+
+            // 加载薪资方案和合同选项
+            fields.forEach((field, index) => {
+                if (field.field_type === '薪资方案') {
+                    loadSalaryPlansForField(field.id);
+                } else if (field.field_type === '劳务合同签署') {
+                    loadContractsForField(field.id);
+                }
+            });
+
+            lucide.createIcons();
+
+            // 恢复表单数据
+            restoreFormData();
+
+            // 检查合同签署状态
+            checkContractStatus();
+
+            // 添加表单数据变化监听
+            addFormDataListeners();
+
+            // 添加合同签署按钮点击事件
+            document.querySelectorAll('.sign-contract-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const fieldId = this.getAttribute('data-field-id');
+                    const select = document.getElementById(`contract-select-${fieldId}`);
+                    const contractId = select.value;
+                    const flowId = getUrlParam('id');
+
+                    if (!contractId) {
+                        showToast('请先选择合同');
+                        return;
+                    }
+
+                    if (!flowId) {
+                        showToast('缺少流程ID');
+                        return;
+                    }
+
+                    // 保存合同ID到本地存储
+                    localStorage.setItem(`contract_id_${flowId}`, contractId);
+                    
+                    // 保存当前表单数据
+                    saveFormData();
+
+                    // 跳转到合同签署页面
+                    window.location.href = `mobile-contract-sign.html?contract_id=${contractId}&flow_id=${flowId}`;
+                });
+            });
+            }
+
+            // 保存表单数据到本地存储
+            function saveFormData() {
+                const flowId = getUrlParam('id');
+                if (!flowId) return;
+
+                const formData = {};
+                
+                // 收集文本输入和选择输入
+                const inputs = document.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox') {
+                        if (input.checked) {
+                            if (!formData[input.name]) {
+                                formData[input.name] = [];
+                            }
+                            formData[input.name].push(input.value);
+                        }
+                    } else if (input.type !== 'file') {
+                        formData[input.name] = input.value;
+                    }
+                });
+
+                localStorage.setItem(`flow_form_${flowId}`, JSON.stringify(formData));
+            }
+
+            // 从本地存储恢复表单数据
+            function restoreFormData() {
+                const flowId = getUrlParam('id');
+                if (!flowId) return;
+
+                const savedData = localStorage.getItem(`flow_form_${flowId}`);
+                if (!savedData) return;
+
+                try {
+                    const formData = JSON.parse(savedData);
+                    
+                    // 恢复文本输入和选择输入
+                    const inputs = document.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            if (formData[input.name] && formData[input.name].includes(input.value)) {
+                                input.checked = true;
+                            }
+                        } else if (input.type !== 'file') {
+                            if (formData[input.name] !== undefined) {
+                                input.value = formData[input.name];
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('恢复表单数据失败:', error);
+                }
+            }
+
+            // 添加表单数据变化监听
+            function addFormDataListeners() {
+                const inputs = document.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    input.addEventListener('change', saveFormData);
+                    input.addEventListener('input', saveFormData);
+                });
+            }
+
+            // 检查合同签署状态
+            function checkContractStatus() {
+                const flowId = getUrlParam('id');
+                if (!flowId) return;
+
+                // 检查本地存储中是否有合同签署状态
+                const contractStatus = localStorage.getItem(`contract_signed_${flowId}`);
+                if (contractStatus === 'signed') {
+                    // 更新所有合同签署按钮
+                    document.querySelectorAll('.sign-contract-btn').forEach(button => {
+                        const fieldId = button.getAttribute('data-field-id');
+                        const select = document.getElementById(`contract-select-${fieldId}`);
+                        
+                        // 隐藏合同选择下拉框
+                        if (select) {
+                            select.style.display = 'none';
+                            // 只有当select.value不为空时，才保存到本地存储
+                            if (select.value) {
+                                localStorage.setItem(`contract_id_${flowId}`, select.value);
+                            }
+                        }
+                        
+                        // 更新按钮
+                        button.textContent = '签署成功 查看合同';
+                        button.classList.remove('bg-primary', 'hover:bg-primary/90');
+                        button.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                        
+                        // 修改点击事件为查看合同
+                        button.removeEventListener('click', button.onclick);
+                        button.addEventListener('click', function() {
+                            // 从本地存储获取合同ID
+                            const contractId = localStorage.getItem(`contract_id_${flowId}`);
+                            
+                            if (contractId) {
+                                window.location.href = `mobile-contract-sign.html?contract_id=${contractId}&flow_id=${flowId}&view=1`;
+                            } else {
+                                showToast('合同信息丢失，请重新签署');
+                            }
+                        });
+                    });
+                }
+            }
+
+            // 提交表单
+            document.getElementById('submitBtn').addEventListener('click', function() {
+                const flowId = getUrlParam('id');
+                if (!flowId) {
+                    showToast('缺少流程ID');
+                    return;
+                }
+
+                // 收集表单数据
+                const formData = new FormData();
+                
+                // 处理文本输入和选择输入
+                const inputs = document.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    if (input.type === 'file') {
+                        // 处理文件输入
+                        if (input.files && input.files[0]) {
+                            formData.append(input.name, input.files[0]);
+                        }
+                    } else if (input.type === 'checkbox' && input.checked) {
+                        formData.append(input.name, input.value);
+                    } else if (input.type !== 'checkbox') {
+                        formData.append(input.name, input.value);
+                    }
+                });
+
+                // 从本地存储获取用户信息
+                const user = JSON.parse(localStorage.getItem('user'));
+                const initiatorId = user ? user.id : 1; // 默认为1
+                const employeeName = user ? user.name : '管理员'; // 默认为管理员
+                
+                // 添加必要的字段
+                formData.append('flow_id', flowId);
+                formData.append('initiator_id', initiatorId);
+                formData.append('employee_name', employeeName);
+
+                // 提交表单数据
+                fetch('http://localhost:5000/api/flows', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.flow_id) {
+                        showToast('流程提交成功');
+                        // 清除本地存储的表单数据
+                        localStorage.removeItem(`flow_form_${flowId}`);
+                        // 跳转到审批页面
+                        setTimeout(() => {
+                            window.location.href = 'mobile-approval-page.html';
+                        }, 1500);
+                    } else {
+                        showToast('提交失败: ' + (data.message || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交流程失败:', error);
+                    showToast('网络错误，请稍后重试');
+                });
+            });
+
+            // 返回按钮点击事件
+            document.getElementById('backBtn').addEventListener('click', function() {
+                window.history.back();
+            });
+
+            // 初始加载流程详情
+            loadFlowDetails();
+        });
+    </script>
+</body>
+</html>

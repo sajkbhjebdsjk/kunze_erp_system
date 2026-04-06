@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>流程中心 - 移动版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        emerald: '#10b981',
+                        rose: '#f43f5e',
+                        dark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        .glass-header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .category-tab.active { color: #6366f1; border-bottom: 2px solid #6366f1; }
+        .flow-card { transition: all 0.3s ease; }
+        .flow-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="glass-header px-6 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-display font-bold">流程中心</h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Workflow Center</p>
+            </div>
+            <div class="flex gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-white/10"><i data-lucide="filter" class="w-4 h-4 text-slate-400"></i></div>
+            </div>
+        </header>
+
+        <!-- Category Tabs -->
+        <div class="bg-slate-900/40 border-b border-white/5 overflow-x-auto">
+            <div class="flex px-6 space-x-6">
+                <button class="category-tab active py-4 font-medium whitespace-nowrap">人事管理</button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-slate-900/40 border-b border-white/5 px-6 py-3">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" placeholder="搜索流程" class="w-full bg-slate-800 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+            </div>
+        </div>
+
+        <!-- Flow Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pb-24">
+            <!-- 人事管理 -->
+            <div class="category-content active px-6 py-4 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold mb-4">人事管理</h2>
+                    <div class="grid grid-cols-2 gap-3" id="flow-list">
+                        <!-- 流程将通过JavaScript动态生成 -->
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <i data-lucide="loader-2" class="w-12 h-12 text-slate-500 animate-spin"></i>
+                            <p class="text-slate-500 mt-4">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 h-20 flex justify-center items-center z-50 bg-slate-900/90 backdrop-blur-xl border-t border-white/10">
+            <div class="flex justify-between items-center w-full px-6">
+                <button class="flex flex-col items-center justify-center text-primary">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">首页</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-approval-page.html'">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">审批</span>
+                </button>
+                <button class="flex flex-col items-center justify-center text-slate-500" onclick="window.location.href='mobile-my-page.html'">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <span class="text-xs mt-1">我的</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 transition-all duration-500 z-[100] w-[280px]">
+        <div class="bg-primary/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <p class="text-xs font-bold leading-tight" id="toast-message">操作成功！</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            let toastTimer = null;
+
+            // 显示Toast通知
+            function showToast(message) {
+                if(toastTimer) clearTimeout(toastTimer);
+                toastMessage.textContent = message;
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                toastTimer = setTimeout(() => {
+                    toast.classList.add('-translate-y-full', 'opacity-0');
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                }, 2500);
+            }
+
+            // 分类标签切换
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签的激活状态
+                    categoryTabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.classList.add('text-slate-500');
+                    });
+                    
+                    // 添加当前标签的激活状态
+                    this.classList.add('active');
+                    this.classList.remove('text-slate-500');
+
+                    // 这里可以添加内容切换逻辑
+                    // 目前所有内容都在一个容器中，实际项目中可以根据需要分离
+                });
+            });
+
+            // 加载启用的工作流程
+            function loadEnabledFlows() {
+                const flowList = document.getElementById('flow-list');
+                
+                // 显示加载状态
+                flowList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <i data-lucide="loader-2" class="w-12 h-12 text-slate-500 animate-spin"></i>
+                        <p class="text-slate-500 mt-4">加载中...</p>
+                    </div>
+                `;
+                lucide.createIcons();
+
+                // 从后端API获取启用的工作流程
+                fetch('http://localhost:5000/api/flows?status=enabled')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应错误');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success && data.data && data.data.length > 0) {
+                            // 生成流程卡片
+                            let flowCards = '';
+                            data.data.forEach(flow => {
+                                flowCards += `
+                                    <div class="flow-card bg-slate-800/50 border border-white/10 rounded-lg p-4 flex flex-col items-center cursor-pointer" data-flow-id="${flow.id}">
+                                        <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3">
+                                            <i data-lucide="file-text" class="w-6 h-6 text-primary"></i>
+                                        </div>
+                                        <span class="text-sm font-medium text-center">${flow.flow_name}</span>
+                                    </div>
+                                `;
+                            });
+                            flowList.innerHTML = flowCards;
+                            lucide.createIcons();
+
+                            // 添加流程卡片点击事件
+                            const cards = document.querySelectorAll('.flow-card');
+                            cards.forEach(card => {
+                                card.addEventListener('click', function() {
+                                    // 跳转到流程申请页面
+                                    const flowId = this.getAttribute('data-flow-id');
+                                    window.location.href = `mobile-flow-apply.html?id=${flowId}`;
+                                });
+                            });
+                        } else {
+                            // 没有启用的流程
+                            flowList.innerHTML = `
+                                <div class="flex flex-col items-center justify-center py-12 col-span-2">
+                                    <i data-lucide="inbox" class="w-12 h-12 text-slate-500"></i>
+                                    <p class="text-slate-500 mt-4">暂无启用的流程</p>
+                                </div>
+                            `;
+                            lucide.createIcons();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载流程数据失败:', error);
+                        flowList.innerHTML = `
+                            <div class="flex flex-col items-center justify-center py-12 col-span-2">
+                                <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500"></i>
+                                <p class="text-slate-500 mt-4">加载失败，请重试</p>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        showToast('加载流程失败');
+                    });
+            }
+
+            // 初始加载流程
+            loadEnabledFlows();
+        });
+    </script>
+</body>
+</html>

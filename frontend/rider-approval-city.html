@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP系统 - 一线城市入离职审批</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <span id="username"></span>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item active">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">人员及权限管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">组织架构</a></li>
+                                <li><a href="#" class="nav-item">管理人员花名册</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">权限管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">角色管理</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">配置工具</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="#" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+
+            </aside>
+            <main class="main">
+                <div class="rider-approval" id="rider-approval-page">
+                    <h2>一线城市入离职审批</h2>
+                    <div class="rider-tabs">
+                        <a href="rider-overview.html" class="tab">运力总览</a>
+                        <!-- <a href="rider-approval.html" class="tab active">入职审批</a> -->
+                        <a href="rider-roster.html" class="tab">骑手花名册</a>
+                        <a href="rider-entry-exit-summary.html" class="tab">入离职汇总表</a>
+                        <a href="rider-part-time.html" class="tab">兼职骑手列表</a>
+                        <a href="rider-entry-records.html" class="tab">入职记录</a>
+                        <a href="rider-exit-records.html" class="tab">离职记录</a>
+                        <a href="rider-pending-exit.html" class="tab">待离职统计</a>
+                    </div>
+                    
+                    <!-- 审批类型选择按钮 -->
+                    <div class="approval-type-buttons">
+                        <a href="rider-approval.html" class="btn btn-primary approval-btn">骑手入离职审批</a>
+                        <a href="rider-approval-city.html" class="btn btn-primary approval-btn active">一线城市入离职审批</a>
+                        <a href="rider-approval-hq.html" class="btn btn-primary approval-btn" id="hq-approval-btn">总部入离职审批</a>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <div class="section">
+                        <h3>审批分析</h3>
+                        <div class="chart-container">
+                            <div class="chart-wrapper loading">
+                                <p>加载中...</p>
+                            </div>
+                            <div class="chart-wrapper loading">
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 筛选器 -->
+                    <div class="approval-filters">
+                        <div class="filter-item">
+                            <label for="city-approval-status">审批状态</label>
+                            <select id="city-approval-status">
+                                <option value="">全部</option>
+                                <option value="pending">待审批</option>
+                                <option value="approved">已批准</option>
+                                <option value="rejected">已拒绝</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="city-approval-type">审批类型</label>
+                            <select id="city-approval-type">
+                                <option value="">全部</option>
+                                <option value="entry">入职</option>
+                                <option value="exit">离职</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-reset">重置</button>
+                            <button class="btn btn-search">搜索</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格 -->
+                    <div class="section">
+                        <table id="city-approval-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>NO</th>
+                                    <th>骑手姓名</th>
+                                    <th>身份证号</th>
+                                    <th>手机号</th>
+                                    <th>城市</th>
+                                    <th>审批类型</th>
+                                    <th>申请时间</th>
+                                    <th>审批状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="10" class="loading">
+                                        <p>加载中...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="js/index.js"></script>
+</body>
+</html>

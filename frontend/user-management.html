@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账号管理 - ERP系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        .user-container {
+            padding: 24px;
+        }
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-header h2 {
+            margin: 0;
+            color: #1a202c;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .btn {
+            padding: 12px 24px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+        .btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .user-table th,
+        .user-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 15px;
+        }
+        .user-table tr:hover {
+            background-color: #f0f9ff;
+        }
+        .user-table tr:last-child td {
+            border-bottom: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .action-btn.edit {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        .action-btn.edit:hover {
+            background-color: #f0f9ff;
+        }
+        .action-btn.delete {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+        .action-btn.delete:hover {
+            background-color: #fef2f2;
+        }
+        .action-btn.roles {
+            color: #f59e0b;
+            border-color: #f59e0b;
+        }
+        .action-btn.roles:hover {
+            background-color: #fffbeb;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 32px;
+            border-radius: 16px;
+            width: 550px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #1a202c;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+        .close:hover {
+            color: #2d3748;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 32px;
+            gap: 12px;
+        }
+        .btn.cancel {
+            background-color: #718096;
+        }
+        .btn.cancel:hover {
+            background-color: #4a5568;
+        }
+        .roles-list {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            background-color: #f8fafc;
+        }
+        .role-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .role-item:hover {
+            background-color: #f0f9ff;
+            border-color: #3b82f6;
+        }
+        .role-item input[type="checkbox"] {
+            margin-right: 14px;
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        .role-item label {
+            margin: 0;
+            flex: 1;
+            font-size: 14px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position-display"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item active">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">配置工具</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="#" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <div class="user-container">
+                    <div class="user-header">
+                        <h2>账号管理</h2>
+                        <button class="btn" id="add-user-btn">添加账号</button>
+                    </div>
+                    <table class="user-table" id="user-table">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>姓名</th>
+                                <th>岗位</th>
+                                <th>所属部门</th>
+                                <th>城市</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 用户数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    
+    <!-- 添加/编辑用户模态框 -->
+    <div class="modal" id="user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加账号</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="form-group">
+                    <label for="user-username">用户名</label>
+                    <input type="text" id="user-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">密码</label>
+                    <input type="password" id="user-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-name">姓名</label>
+                    <input type="text" id="user-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-position">岗位</label>
+                    <select id="user-position" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-department">所属部门</label>
+                    <select id="user-department" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-city">城市</label>
+                    <select id="user-city" required>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn cancel" id="cancel-btn">取消</button>
+                    <button type="submit" class="btn" id="save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 角色分配模态框 -->
+    <div class="modal" id="roles-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="roles-modal-title">分配角色</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="roles-form">
+                <input type="hidden" id="roles-user-id">
+                <div class="roles-list" id="roles-list">
+                    <!-- 角色列表将通过JavaScript动态生成 -->
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn cancel" id="roles-cancel-btn">取消</button>
+                    <button type="submit" class="btn" id="roles-save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/index.js"></script>
+    <script>
+        // 注意：数据加载已由 index.js 中的 checkLoginStatus -> updateCityData 自动处理
+        // 这里只处理模态框相关的事件绑定
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模态框相关
+            const userModal = document.getElementById('user-modal');
+            const rolesModal = document.getElementById('roles-modal');
+            const addBtn = document.getElementById('add-user-btn');
+            const closeBtns = document.querySelectorAll('.close');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const rolesCancelBtn = document.getElementById('roles-cancel-btn');
+            const userForm = document.getElementById('user-form');
+            const rolesForm = document.getElementById('roles-form');
+            
+            // 打开添加用户模态框
+            addBtn.addEventListener('click', function() {
+                document.getElementById('modal-title').textContent = '添加账号';
+                document.getElementById('user-id').value = '';
+                document.getElementById('user-username').value = '';
+                document.getElementById('user-password').value = '';
+                document.getElementById('user-name').value = '';
+                document.getElementById('user-position').value = '';
+                document.getElementById('user-department').value = '';
+                document.getElementById('user-city').value = '';
+                
+                // 先清空下拉框
+                document.getElementById('user-position').innerHTML = '<option value="">加载中...</option>';
+                document.getElementById('user-department').innerHTML = '<option value="">加载中...</option>';
+                document.getElementById('user-city').innerHTML = '<option value="">加载中...</option>';
+                
+                // 显示模态框
+                userModal.style.display = 'flex';
+                
+                // 加载数据
+                loadDepartments();
+                loadCities();
+                loadPositions();
+            });
+            
+            // 关闭模态框
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    userModal.style.display = 'none';
+                    rolesModal.style.display = 'none';
+                });
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                userModal.style.display = 'none';
+            });
+            
+            rolesCancelBtn.addEventListener('click', function() {
+                rolesModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target == userModal) {
+                    userModal.style.display = 'none';
+                } else if (event.target == rolesModal) {
+                    rolesModal.style.display = 'none';
+                }
+            });
+            
+            // 提交用户表单
+            userForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUser();
+            });
+            
+            // 提交角色表单
+            rolesForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUserRoles();
+            });
+        });
+        
+        function loadUsers(city) {
+            // 获取当前选择的城市
+            const selectedCity = city || localStorage.getItem('selectedCity') || 'all';
+            
+            // 构建查询参数
+            let url = 'http://localhost:5000/api/users';
+            if (selectedCity && selectedCity !== 'all') {
+                url += `?city_code=${selectedCity}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderUsers(data.users);
+                    } else {
+                        alert('加载用户失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载用户失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+        }
+        
+        function loadDepartments() {
+            fetch('http://localhost:5000/api/departments')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('user-department');
+                    if (!select) {
+                        console.error('部门下拉框元素未找到');
+                        return;
+                    }
+                    if (data.departments) {
+                        select.innerHTML = '';
+                        // 添加默认选项
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '请选择部门';
+                        select.appendChild(defaultOption);
+                        data.departments.forEach(dept => {
+                            const option = document.createElement('option');
+                            option.value = dept.department_id;
+                            option.textContent = dept.department_name;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '加载部门失败';
+                        select.appendChild(errorOption);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载部门数据错误:', error);
+                    const select = document.getElementById('user-department');
+                    if (select) {
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '网络错误';
+                        select.appendChild(errorOption);
+                    }
+                });
+        }
+        
+        function loadCities() {
+            fetch('http://localhost:5000/api/cities')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('user-city');
+                    if (!select) {
+                        console.error('城市下拉框元素未找到');
+                        return;
+                    }
+                    if (data.cities) {
+                        select.innerHTML = '';
+                        // 添加默认选项
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '请选择城市';
+                        select.appendChild(defaultOption);
+                        data.cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.city_code;
+                            option.textContent = city.city_name;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '加载城市失败';
+                        select.appendChild(errorOption);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载城市数据错误:', error);
+                    const select = document.getElementById('user-city');
+                    if (select) {
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '网络错误';
+                        select.appendChild(errorOption);
+                    }
+                });
+        }
+        
+        function loadPositions() {
+            fetch('http://localhost:5000/api/positions')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('加载岗位数据:', data);
+                    const select = document.getElementById('user-position');
+                    if (!select) {
+                        console.error('岗位下拉框元素未找到');
+                        return;
+                    }
+                    
+                    if (data.positions) {
+                        select.innerHTML = '';
+                        // 添加默认选项
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '请选择岗位';
+                        select.appendChild(defaultOption);
+                        
+                        if (data.positions.length > 0) {
+                            data.positions.forEach(position => {
+                                const option = document.createElement('option');
+                                option.value = position.position_id;
+                                option.textContent = position.position_name;
+                                select.appendChild(option);
+                            });
+                        } else {
+                            // 如果没有岗位数据，添加一个提示选项
+                            const noDataOption = document.createElement('option');
+                            noDataOption.value = '';
+                            noDataOption.textContent = '暂无岗位数据';
+                            select.appendChild(noDataOption);
+                        }
+                    } else {
+                        console.error('加载岗位数据失败:', data.message);
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '加载岗位失败';
+                        select.appendChild(errorOption);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载岗位数据错误:', error);
+                    const select = document.getElementById('user-position');
+                    if (select) {
+                        select.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = '网络错误';
+                        select.appendChild(errorOption);
+                    }
+                });
+        }
+        
+        function renderUsers(users) {
+            const tbody = document.querySelector('#user-table tbody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.name}</td>
+                    <td>${user.position_name}</td>
+                    <td>${user.department_name}</td>
+                    <td>${user.city_name}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" onclick="editUser(${user.id})">编辑</button>
+                            <button class="action-btn roles" onclick="assignRoles(${user.id}, '${user.name}')">角色</button>
+                            <button class="action-btn delete" onclick="deleteUser(${user.id})">删除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function editUser(id) {
+            fetch('http://localhost:5000/api/users')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.users.find(u => u.id === id);
+                        if (user) {
+                            document.getElementById('modal-title').textContent = '编辑账号';
+                            document.getElementById('user-id').value = user.id;
+                            document.getElementById('user-username').value = user.username;
+                            document.getElementById('user-password').value = '';
+                            document.getElementById('user-name').value = user.name;
+                            loadDepartments();
+                            loadCities();
+                            loadPositions();
+                            // 延迟设置选中值，等待数据加载完成
+                            setTimeout(() => {
+                                document.getElementById('user-department').value = user.department_id;
+                                document.getElementById('user-city').value = user.city_code;
+                                document.getElementById('user-position').value = user.position_id;
+                            }, 100);
+                            document.getElementById('user-modal').style.display = 'flex';
+                        }
+                    }
+                });
+        }
+        
+        function deleteUser(id) {
+            if (confirm('确定要删除这个账号吗？')) {
+                fetch(`http://localhost:5000/api/users/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('用户删除成功');
+                        loadUsers(); // 重新加载用户列表
+                    } else {
+                        alert('删除失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('删除用户失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+        }
+        
+        function assignRoles(userId, userName) {
+            document.getElementById('roles-modal-title').textContent = `为用户 "${userName}" 分配角色`;
+            document.getElementById('roles-user-id').value = userId;
+            
+            // 加载所有角色
+            fetch('http://localhost:5000/api/roles')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 加载用户已有角色
+                        fetch(`http://localhost:5000/api/users/${userId}/roles`)
+                            .then(response => response.json())
+                            .then(userRolesData => {
+                                if (userRolesData.success) {
+                                    const userRoles = userRolesData.roles.map(r => r.id);
+                                    renderRolesList(data.roles, userRoles);
+                                    document.getElementById('roles-modal').style.display = 'flex';
+                                }
+                            });
+                    }
+                });
+        }
+        
+        function renderRolesList(roles, userRoles) {
+            const list = document.getElementById('roles-list');
+            list.innerHTML = '';
+            
+            roles.forEach(role => {
+                const item = document.createElement('div');
+                item.className = 'role-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="role-${role.id}" value="${role.id}" ${userRoles.includes(role.id) ? 'checked' : ''}>
+                    <label for="role-${role.id}">${role.name} - ${role.description}</label>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        function saveUser() {
+            const id = document.getElementById('user-id').value;
+            const username = document.getElementById('user-username').value;
+            const password = document.getElementById('user-password').value;
+            const name = document.getElementById('user-name').value;
+            const position = document.getElementById('user-position').value;
+            const departmentId = document.getElementById('user-department').value;
+            const cityCode = document.getElementById('user-city').value;
+            
+            if (id) {
+                // 编辑用户
+                alert('编辑功能待实现');
+            } else {
+                // 添加用户
+                fetch('http://localhost:5000/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        name,
+                        position_id: position,
+                        department_id: departmentId,
+                        city_code: cityCode
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('用户创建成功');
+                        loadUsers();
+                    } else {
+                        alert('创建失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('创建用户失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+            document.getElementById('user-modal').style.display = 'none';
+        }
+        
+        function saveUserRoles() {
+            const userId = document.getElementById('roles-user-id').value;
+            const checkboxes = document.querySelectorAll('#roles-list input[type="checkbox"]');
+            const selectedRoles = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value));
+            
+            fetch(`http://localhost:5000/api/users/${userId}/roles/batch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role_ids: selectedRoles })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('角色分配成功');
+                    document.getElementById('roles-modal').style.display = 'none';
+                } else {
+                    alert('保存失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('保存角色失败:', error);
+                alert('网络错误，请稍后重试');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同配置台 - ERP系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677FF',
+                        secondary: '#0958D9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        bgGray: '#F5F7FA',
+                        borderGray: '#E5E8EF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F5F7FA 0%, #E8ECF4 100%);
+            min-height: 100vh;
+        }
+        .container-main {
+            width: 100%;
+            padding: 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+        .contract-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .contract-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(22, 119, 255, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(22, 119, 255, 0.3);
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .editor-container {
+            min-height: 700px;
+        }
+        .tool-bar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px 8px 0 0;
+            padding: 12px 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        .tool-btn:hover {
+            background: #f0f9ff;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .tool-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .tool-separator {
+            width: 1px;
+            height: 24px;
+            background: #e2e8f0;
+            margin: 0 8px;
+        }
+        .tool-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        .tool-select:hover {
+            border-color: #3b82f6;
+        }
+        .content-editable {
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            min-height: 600px;
+            padding: 32px;
+            background: white;
+            font-size: 16px;
+            line-height: 1.6;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .content-editable:focus {
+            border-color: #3b82f6;
+        }
+        .content-editable h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 24px 0 16px 0;
+        }
+        .content-editable h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0 14px 0;
+        }
+        .content-editable h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 18px 0 12px 0;
+        }
+        .content-editable p {
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+        .content-editable ul,
+        .content-editable ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+        .content-editable li {
+            margin-bottom: 8px;
+        }
+        .content-editable blockquote {
+            border-left: 4px solid #3b82f6;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #64748b;
+            font-style: italic;
+        }
+        .document-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .document-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .document-meta {
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu active">配置工具</a>
+                                    <ul class="sub-menu show">
+                                        <li><a href="workflow-config.html" class="nav-item" data-page="listPage">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="salary-plan-config.html" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item active" data-page="listPage">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <!-- 合同列表页 -->
+                <div id="listPage" class="container-main">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">合同配置台</h1>
+                                <p class="text-gray-500 text-sm">上传和管理合同模板</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <label for="fileUpload" class="btn-primary text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg cursor-pointer">
+                                    <i data-lucide="upload" class="w-5 h-5"></i>
+                                    上传合同
+                                </label>
+                                <input type="file" id="fileUpload" accept=".doc,.docx" class="hidden">
+                                <button id="refreshBtn" class="glass-card px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                                    刷新
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 功能选项卡 -->
+                    <div class="glass-card rounded-2xl p-2 mb-6 flex gap-2">
+                        <button id="tabTemplate" class="flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white" onclick="switchTab('template')">
+                            <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>合同模板
+                        </button>
+                        <button id="tabRiderContract" class="flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100" onclick="switchTab('riderContract')">
+                            <i data-lucide="smartphone" class="w-4 h-4 inline mr-2"></i>骑手合同签署
+                        </button>
+                    </div>
+
+                    <!-- 合同模板列表 -->
+                    <div id="templateSection">
+                        <div id="contractList" class="grid grid-cols-3 gap-6">
+                            <!-- 合同卡片将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 骑手合同签署管理 -->
+                    <div id="riderContractSection" class="hidden space-y-6">
+                        <!-- 统计卡片 -->
+                        <div class="grid grid-cols-4 gap-6">
+                            <div class="glass-card rounded-2xl p-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-500 text-sm">总签署数</span>
+                                    <i data-lucide="file-signature" class="w-5 h-5 text-primary"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-gray-900" id="statTotal">0</p>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-500 text-sm">今日签署</span>
+                                    <i data-lucide="calendar-check" class="w-5 h-5 text-emerald-500"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-emerald-500" id="statToday">0</p>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-500 text-sm">待签署</span>
+                                    <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-amber-500" id="statPending">0</p>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-500 text-sm">签署率</span>
+                                    <i data-lucide="trending-up" class="w-5 h-5 text-purple-500"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-purple-500" id="statRate">0%</p>
+                            </div>
+                        </div>
+
+                        <!-- 操作栏 -->
+                        <div class="glass-card rounded-2xl p-6">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold text-gray-900">骑手合同签署记录</h2>
+                                <div class="flex gap-3">
+                                    <button onclick="generateSignLink()" class="btn-primary text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
+                                        <i data-lucide="link" class="w-4 h-4"></i>
+                                        生成签署链接
+                                    </button>
+                                    <button onclick="loadRiderContracts()" class="glass-card px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-lg hover:bg-gray-100 transition-colors">
+                                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                        刷新
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 合同选择器（生成链接前先选合同） -->
+                            <div id="contractSelectorArea" class="mt-5 p-5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+                                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                    <i data-lucide="file-text" class="w-4 h-4 text-primary"></i>
+                                    选择合同模板
+                                </label>
+                                <select id="contractTemplateSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                                    <option value="">-- 请选择要使用的合同模板 --</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-2">* 骑手将签署您选择的这份合同内容</p>
+                            </div>
+
+                            <!-- 签署链接展示区 -->
+                            <div id="signLinkArea" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                <p class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+                                    签署链接已生成！
+                                </p>
+                                <div class="bg-white p-3 rounded-lg border border-emerald-200 mb-3">
+                                    <p class="text-xs text-gray-500 mb-1">选中合同：<span id="selectedContractName" class="font-semibold text-primary"></span></p>
+                                    <div class="flex gap-2 mt-2">
+                                        <input type="text" id="signLinkInput" readonly class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-sm font-mono" value="">
+                                        <button onclick="copySignLink()" class="px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium shadow-sm">
+                                            复制链接
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="generateQRCode()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1">
+                                        <i data-lucide="qr-code" class="w-4 h-4"></i> 生成二维码
+                                    </button>
+                                    <button onclick="openSignPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1">
+                                        <i data-lucide="external-link" class="w-4 h-4"></i> 打开页面
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-3">* 骑手可通过此链接直接签署所选合同，无需经过工作流审批</p>
+                                
+                                <!-- 二维码展示区 -->
+                                <div id="qrcodeArea" class="hidden mt-4 p-4 bg-white rounded-lg border border-dashed border-gray-300 text-center">
+                                    <p class="text-sm text-gray-600 mb-2">扫码签署</p>
+                                    <div id="qrcodeContainer" class="inline-block"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 签署记录表格 -->
+                        <div class="glass-card rounded-2xl overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">合同编号</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">乙方姓名</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">身份证号</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">手机号</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">签署时间</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">状态/PDF</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riderContractTableBody" class="divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                                            <p>暂无签署记录</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <!-- 分页 -->
+                            <div class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
+                                <span class="text-sm text-gray-500" id="paginationInfo">共 0 条记录</span>
+                                <div class="flex gap-2" id="paginationControls">
+                                    <!-- 分页按钮将通过JS动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 编辑页面 -->
+                <div id="editPage" class="container-main hidden">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">编辑合同</h1>
+                                <p class="text-gray-500 text-sm" id="currentContractName">正在编辑: 合同名称</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <button id="backToListBtn" class="glass-card px-4 py-2 rounded-lg flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                    返回列表
+                                </button>
+                                <button id="saveContractBtn" class="btn-primary text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg">
+                                    <i data-lucide="save" class="w-5 h-5"></i>
+                                    保存合同
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 编辑器区域 -->
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <!-- 文档头部 -->
+                        <div class="document-header">
+                            <div class="document-title" id="documentTitle">合同文档</div>
+                            <div class="document-meta">
+                                <span><i data-lucide="user" class="w-4 h-4 inline mr-2"></i>管理员</span>
+                                <span><i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>今天 12:00</span>
+                                <span><i data-lucide="eye" class="w-4 h-4 inline mr-2"></i>1 次查看</span>
+                            </div>
+                        </div>
+
+                        <!-- 工具栏 -->
+                        <div class="tool-bar">
+                            <button class="tool-btn" data-command="bold" title="加粗"><i data-lucide="bold"></i></button>
+                            <button class="tool-btn" data-command="italic" title="斜体"><i data-lucide="italic"></i></button>
+                            <button class="tool-btn" data-command="underline" title="下划线"><i data-lucide="underline"></i></button>
+                            <button class="tool-btn" data-command="strikeThrough" title="删除线"><i data-lucide="strikethrough"></i></button>
+                            <div class="tool-separator"></div>
+                            <button class="tool-btn" data-command="justifyLeft" title="左对齐"><i data-lucide="align-left"></i></button>
+                            <button class="tool-btn" data-command="justifyCenter" title="居中对齐"><i data-lucide="align-center"></i></button>
+                            <button class="tool-btn" data-command="justifyRight" title="右对齐"><i data-lucide="align-right"></i></button>
+                            <button class="tool-btn" data-command="justifyFull" title="两端对齐"><i data-lucide="align-justify"></i></button>
+                            <div class="tool-separator"></div>
+                            <button class="tool-btn" data-command="insertUnorderedList" title="无序列表"><i data-lucide="list"></i></button>
+                            <button class="tool-btn" data-command="insertOrderedList" title="有序列表"><i data-lucide="list-ordered"></i></button>
+                            <button class="tool-btn" data-command="outdent" title="减少缩进"><i data-lucide="indent"></i></button>
+                            <button class="tool-btn" data-command="indent" title="增加缩进"><i data-lucide="outdent"></i></button>
+                            <div class="tool-separator"></div>
+                            <button class="tool-btn" data-command="insertImage" title="插入图片"><i data-lucide="image"></i></button>
+                            <button class="tool-btn" data-command="createLink" title="插入链接"><i data-lucide="link"></i></button>
+                            <button class="tool-btn" data-command="unlink" title="移除链接"><i data-lucide="unlink"></i></button>
+                            <div class="tool-separator"></div>
+                            <select class="tool-select" onchange="document.execCommand('formatBlock', false, this.value)" title="段落格式">
+                                <option value="p">正文</option>
+                                <option value="h1">标题1</option>
+                                <option value="h2">标题2</option>
+                                <option value="h3">标题3</option>
+                                <option value="h4">标题4</option>
+                                <option value="h5">标题5</option>
+                                <option value="h6">标题6</option>
+                                <option value="blockquote">引用</option>
+                            </select>
+                            <select class="tool-select" onchange="document.execCommand('fontSize', false, this.value)" title="字体大小">
+                                <option value="1">12px</option>
+                                <option value="2">14px</option>
+                                <option value="3" selected>16px</option>
+                                <option value="4">18px</option>
+                                <option value="5">24px</option>
+                                <option value="6">32px</option>
+                                <option value="7">48px</option>
+                            </select>
+                            <input type="color" class="tool-color w-8 h-8 rounded border border-gray-300 cursor-pointer" onchange="document.execCommand('foreColor', false, this.value)" title="字体颜色">
+                        </div>
+
+                        <!-- 编辑区域 -->
+                        <div contenteditable="true" class="content-editable" id="contractEditor">
+                            <!-- 合同内容将在这里编辑 -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="js/index.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 页面元素
+            const listPage = document.getElementById('listPage');
+            const editPage = document.getElementById('editPage');
+            const fileUpload = document.getElementById('fileUpload');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const contractList = document.getElementById('contractList');
+            const backToListBtn = document.getElementById('backToListBtn');
+            const saveContractBtn = document.getElementById('saveContractBtn');
+            const contractEditor = document.getElementById('contractEditor');
+            const currentContractName = document.getElementById('currentContractName');
+            const documentTitle = document.getElementById('documentTitle');
+            const toolBtns = document.querySelectorAll('.tool-btn');
+
+            let contracts = [];
+            let currentContractId = null;
+
+            // 初始化图标
+            lucide.createIcons();
+
+            // 加载合同数据
+            loadContracts();
+
+            // 文件上传事件
+            fileUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    uploadContract(file);
+                }
+            });
+
+            // 刷新按钮点击事件
+            refreshBtn.addEventListener('click', function() {
+                loadContracts();
+            });
+
+            // 返回列表按钮点击事件
+            backToListBtn.addEventListener('click', function() {
+                editPage.classList.add('hidden');
+                listPage.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            });
+
+            // 保存合同按钮点击事件
+            saveContractBtn.addEventListener('click', function() {
+                saveContract();
+            });
+
+            // 工具栏按钮点击事件
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    if (command === 'insertImage') {
+                        const url = prompt('请输入图片URL:');
+                        if (url) {
+                            document.execCommand('insertImage', false, url);
+                        }
+                    } else if (command === 'createLink') {
+                        const url = prompt('请输入链接URL:');
+                        if (url) {
+                            document.execCommand('createLink', false, url);
+                        }
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                });
+            });
+
+            // 上传合同
+            function uploadContract(file) {
+                const formData = new FormData();
+                formData.append('contract', file);
+
+                fetch('http://localhost:5000/api/contracts/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('合同上传成功');
+                        loadContracts();
+                    } else {
+                        alert('上传失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('上传合同失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+
+            // 加载合同列表
+            function loadContracts() {
+                fetch('http://localhost:5000/api/contracts')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            contracts = data.data;
+                            updateContractList();
+                        } else {
+                            console.error('加载合同数据失败:', data.message);
+                            alert('加载合同数据失败: ' + data.message);
+                            contracts = [];
+                            updateContractList();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载合同数据失败:', error);
+                        alert('网络错误，请稍后重试');
+                        contracts = [];
+                        updateContractList();
+                    });
+            }
+
+            // 更新合同列表
+            function updateContractList() {
+                contractList.innerHTML = '';
+                
+                if (contracts.length === 0) {
+                    contractList.innerHTML = `
+                        <div class="col-span-3 flex flex-col items-center justify-center h-64 glass-card rounded-2xl">
+                            <i data-lucide="file-text" class="w-12 h-12 text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">暂无合同模板</p>
+                            <p class="text-gray-400 text-sm mt-2">请点击"上传合同"按钮添加合同模板</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+                
+                contracts.forEach(contract => {
+                    const card = document.createElement('div');
+                    card.className = 'contract-card glass-card rounded-2xl p-6 fade-in';
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                                <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <span class="px-3 py-1 ${contract.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} text-xs font-medium rounded-full">${contract.status === 'active' ? '启用' : '禁用'}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${contract.name}</h3>
+                        <p class="text-gray-500 text-sm mb-2">${contract.filename}</p>
+                        <p class="text-gray-400 text-xs mb-6">${contract.size} · ${contract.created_at}</p>
+                        <div class="flex gap-3">
+                            <button class="edit-btn flex-1 bg-primary text-white px-4 py-2.5 rounded-lg font-medium hover:bg-secondary transition-colors flex items-center justify-center gap-2" onclick="editContract(${contract.id})">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                编辑
+                            </button>
+                            <button class="status-btn w-12 h-11 ${contract.status === 'active' ? 'border-2 border-yellow-200 text-yellow-500 hover:bg-yellow-50' : 'border-2 border-green-200 text-green-500 hover:bg-green-50'} rounded-lg transition-colors flex items-center justify-center" onclick="toggleContractStatus(${contract.id}, '${contract.status}')">
+                                <i data-lucide="${contract.status === 'active' ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                            </button>
+                            <button class="delete-btn w-12 h-11 border-2 border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" onclick="deleteContract(${contract.id})">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    contractList.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            // 编辑合同
+            window.editContract = function(contractId) {
+                currentContractId = contractId;
+                const contract = contracts.find(c => c.id === contractId);
+                
+                if (contract) {
+                    currentContractName.textContent = `正在编辑: ${contract.name}`;
+                    documentTitle.textContent = contract.name;
+                    
+                    // 从后端获取合同内容
+                    fetch(`http://localhost:5000/api/contracts/${contractId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // 直接使用后端返回的带格式HTML内容
+                                const content = data.data.content || '';
+                                contractEditor.innerHTML = content || '<p>请编辑合同内容</p>';
+                                editPage.classList.remove('hidden');
+                                listPage.classList.add('hidden');
+                                window.scrollTo(0, 0);
+                            } else {
+                                alert('加载合同内容失败: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('加载合同内容失败:', error);
+                            alert('网络错误，请稍后重试');
+                        });
+                }
+            };
+
+            // 切换合同状态
+            window.toggleContractStatus = function(contractId, currentStatus) {
+                const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+                
+                fetch(`http://localhost:5000/api/contracts/${contractId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadContracts();
+                    } else {
+                        alert('操作失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('切换状态失败:', error);
+                    // 模拟成功
+                    const contract = contracts.find(c => c.id === contractId);
+                    if (contract) {
+                        contract.status = newStatus;
+                        updateContractList();
+                    }
+                });
+            };
+
+            // 删除合同
+            window.deleteContract = function(contractId) {
+                if (confirm('确定要删除这个合同吗？')) {
+                    fetch(`http://localhost:5000/api/contracts/${contractId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            loadContracts();
+                        } else {
+                            alert('删除失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('删除合同失败:', error);
+                        // 模拟成功
+                        contracts = contracts.filter(c => c.id !== contractId);
+                        updateContractList();
+                    });
+                }
+            };
+
+            // 保存合同
+            function saveContract() {
+                const content = contractEditor.innerHTML;
+                
+                fetch(`http://localhost:5000/api/contracts/${currentContractId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: content })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('合同保存成功');
+                        editPage.classList.add('hidden');
+                        listPage.classList.remove('hidden');
+                    } else {
+                        alert('保存失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('保存合同失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+
+            // ========== 骑手合同签署功能 ==========
+            
+            let currentRiderContractPage = 1;
+            const riderContractPerPage = 10;
+
+            // 切换Tab
+            window.switchTab = function(tab) {
+                const tabTemplate = document.getElementById('tabTemplate');
+                const tabRiderContract = document.getElementById('tabRiderContract');
+                const templateSection = document.getElementById('templateSection');
+                const riderContractSection = document.getElementById('riderContractSection');
+
+                if (tab === 'template') {
+                    tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
+                    tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
+                    templateSection.classList.remove('hidden');
+                    riderContractSection.classList.add('hidden');
+                } else {
+                    tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
+                    tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
+                    templateSection.classList.add('hidden');
+                    riderContractSection.classList.remove('hidden');
+                    
+                    // 加载骑手合同数据
+                    loadRiderContracts();
+                    loadRiderContractStats();
+                    loadContractTemplates(); // 加载合同模板到选择器
+                }
+                
+                // 延迟执行图标渲染，避免触发点击事件
+                setTimeout(() => {
+                    lucide.createIcons();
+                }, 100);
+            };
+
+            // 加载合同模板列表（用于选择器）
+            function loadContractTemplates() {
+                fetch('http://localhost:5000/api/contracts')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data) {
+                            const select = document.getElementById('contractTemplateSelect');
+                            select.innerHTML = '<option value="">-- 请选择要使用的合同模板 --</option>';
+                            
+                            data.data.forEach(contract => {
+                                const option = document.createElement('option');
+                                option.value = contract.id;
+                                option.textContent = contract.name;
+                                select.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载合同模板失败:', error);
+                    });
+            }
+
+            // 生成签署链接（需要先选择合同）
+            window.generateSignLink = function() {
+                const selectedTemplateId = document.getElementById('contractTemplateSelect').value;
+                
+                if (!selectedTemplateId) {
+                    alert('请先选择一个合同模板！');
+                    return;
+                }
+                
+                const selectedText = document.getElementById('contractTemplateSelect').options[document.getElementById('contractTemplateSelect').selectedIndex].text;
+                const baseUrl = window.location.origin + '/rider-contract-sign.html?template_id=' + selectedTemplateId;
+                
+                document.getElementById('signLinkInput').value = baseUrl;
+                document.getElementById('selectedContractName').textContent = selectedText;
+                document.getElementById('signLinkArea').classList.remove('hidden');
+                document.getElementById('qrcodeArea').classList.add('hidden'); // 隐藏之前的二维码
+                lucide.createIcons();
+            };
+
+            // 复制签署链接
+            window.copySignLink = function() {
+                const input = document.getElementById('signLinkInput');
+                input.select();
+                document.execCommand('copy');
+                alert('✅ 链接已复制到剪贴板！');
+            };
+
+            // 生成二维码
+            window.generateQRCode = function() {
+                const link = document.getElementById('signLinkInput').value;
+                if (!link) return;
+                
+                const qrcodeArea = document.getElementById('qrcodeArea');
+                const container = document.getElementById('qrcodeContainer');
+                
+                // 使用在线二维码API生成
+                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}" alt="签署二维码" style="border-radius:8px;">`;
+                qrcodeArea.classList.remove('hidden');
+                lucide.createIcons();
+            };
+
+            // 打开签署页面
+            window.openSignPage = function() {
+                const link = document.getElementById('signLinkInput').value;
+                if (link) {
+                    window.open(link, '_blank');
+                }
+            };
+
+            // 加载骑手合同统计
+            function loadRiderContractStats() {
+                fetch('http://localhost:5000/api/rider-contracts/stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const stats = data.total_stats;
+                            document.getElementById('statTotal').textContent = stats.total || 0;
+                            document.getElementById('statToday').textContent = stats.signed_count || 0;
+                            document.getElementById('statPending').textContent = stats.pending_count || 0;
+                            
+                            const total = parseInt(stats.total) || 0;
+                            const signed = parseInt(stats.signed_count) || 0;
+                            const rate = total > 0 ? ((signed / total) * 100).toFixed(1) : 0;
+                            document.getElementById('statRate').textContent = rate + '%';
+                            
+                            const pdfCount = stats.pdf_generated_count || 0;
+                            if (pdfCount > 0) {
+                                document.getElementById('statRate').textContent = rate + '% (PDF:' + pdfCount + ')';
+                                document.getElementById('statRate').style.color = '#059669';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载统计数据失败:', error);
+                    });
+            }
+
+            // 加载骑手合同列表
+            window.loadRiderContracts = function(page = 1) {
+                currentRiderContractPage = page;
+                
+                fetch(`http://localhost:5000/api/rider-contracts?page=${page}&per_page=${riderContractPerPage}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            renderRiderContractTable(data.data);
+                            renderPagination(data.total, page, riderContractPerPage);
+                            
+                            document.getElementById('paginationInfo').textContent = 
+                                `共 ${data.total} 条记录 · 第 ${page} 页`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载骑手合同列表失败:', error);
+                    });
+            };
+
+            // 渲染骑手合同表格
+            function renderRiderContractTable(contracts) {
+                const tbody = document.getElementById('riderContractTableBody');
+                
+                if (!contracts || contracts.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                                <p>暂无签署记录</p>
+                            </td>
+                        </tr>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                let html = '';
+                contracts.forEach(contract => {
+                    const statusClass = contract.status === 1 ? 'bg-emerald-100 text-emerald-700' : 
+                                       contract.status === 0 ? 'bg-amber-100 text-amber-700' : 
+                                       'bg-gray-100 text-gray-700';
+                    const statusText = contract.status === 1 ? '已签署' : 
+                                      contract.status === 0 ? '待签署' : '已失效';
+                    const hasPdf = contract.pdf_path && contract.pdf_path !== '';
+                    const viewCount = contract.view_count || 0;
+                    const viewMax = contract.view_max_allowed || 1;
+                    const viewRemaining = Math.max(0, viewMax - viewCount);
+                    
+                    html += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-sm font-mono text-primary">${contract.contract_no}</td>
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${contract.party_b_name}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${contract.id_card}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${contract.phone}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${contract.sign_time || '-'}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}">${statusText}</span>
+                                ${hasPdf ? '<span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">PDF</span>' : ''}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2 flex-wrap">
+                                    ${contract.status === 1 ? `
+                                        <button onclick="viewRiderContract(${contract.id})" class="text-primary hover:text-secondary text-sm font-medium flex items-center gap-1">
+                                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>详情
+                                        </button>
+                                        ${hasPdf ? `
+                                            <a href="http://localhost:5000/api/rider-contracts/download/${contract.id}" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium ml-2 flex items-center gap-1">
+                                                <i data-lucide="download" class="w-3.5 h-3.5"></i>下载PDF
+                                            </a>
+                                        ` : '<span class="text-gray-400 text-xs ml-2">无PDF</span>'}
+                                        <span class="text-xs text-gray-400 ml-2">查看:${viewRemaining}/${viewMax}</span>
+                                    ` : '-'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+                lucide.createIcons();
+            }
+
+            // 渲染分页
+            function renderPagination(total, currentPage, perPage) {
+                const totalPages = Math.ceil(total / perPage);
+                const controls = document.getElementById('paginationControls');
+                
+                let html = '';
+                
+                // 上一页按钮
+                html += `<button onclick="loadRiderContracts(${currentPage - 1})" 
+                              class="px-3 py-1 border rounded-lg text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}"
+                              ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+                
+                // 页码
+                for (let i = 1; i <= totalPages && i <= 5; i++) {
+                    html += `<button onclick="loadRiderContracts(${i})" 
+                                  class="px-3 py-1 border rounded-lg text-sm ${i === currentPage ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}">${i}</button>`;
+                }
+                
+                // 下一页按钮
+                html += `<button onclick="loadRiderContracts(${currentPage + 1})" 
+                              class="px-3 py-1 border rounded-lg text-sm ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}"
+                              ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+
+                controls.innerHTML = html;
+            }
+
+            // 查看骑手合同详情
+            window.viewRiderContract = function(contractId) {
+                fetch(`http://localhost:5000/api/rider-contracts/${contractId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const c = data.data;
+                            const hasPdf = c.pdf_path && c.pdf_path !== '';
+                            const viewCount = c.view_count || 0;
+                            const viewMax = c.view_max_allowed || 1;
+                            
+                            const modalId = 'riderContractModal_' + Date.now();
+                            const modalHtml = `
+                                <div id="${modalId}" class="fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,.5);z-index:9999;">
+                                    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[85vh] overflow-hidden flex flex-col">
+                                        <div class="px-6 py-4 bg-gradient-to-r from-primary to-purple-600 flex justify-between items-center rounded-t-2xl">
+                                            <h3 class="text-white font-bold text-lg">📋 合同详情</h3>
+                                            <button onclick="document.getElementById('${modalId}').remove()" 
+                                                    class="text-white/80 hover:text-white text-xl">&times;</button>
+                                        </div>
+                                        <div class="p-6 overflow-y-auto custom-scrollbar space-y-3">
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="bg-slate-50 p-3 rounded-xl">
+                                                    <p class="text-xs text-gray-500">合同编号</p>
+                                                    <p class="font-mono font-semibold text-primary text-sm">${c.contract_no}</p>
+                                                </div>
+                                                <div class="bg-slate-50 p-3 rounded-xl">
+                                                    <p class="text-xs text-gray-500">签署状态</p>
+                                                    <p class="font-semibold text-sm">${c.status === 1 ? '<span class="text-emerald-600">✅ 已签署</span>' : '<span class="text-gray-400">未签署</span>'}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="border-t pt-3 mt-3 space-y-2">
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">乙方姓名：</span><span class="font-medium text-sm">${c.party_b_name}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">身份证号：</span><span class="font-mono text-sm">${c.id_card}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">手机号：</span><span class="font-medium text-sm">${c.phone}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">地址：</span><span class="font-medium text-sm">${c.address}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">紧急联系人：</span><span class="font-medium text-sm">${c.emergency_name || '-'} / ${c.emergency_phone || '-'}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">签署时间：</span><span class="font-medium text-sm">${c.sign_time || '未签署'}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">PDF状态：</span><span class="font-medium text-sm ${hasPdf ? 'text-emerald-600' : 'text-gray-400'}">${hasPdf ? '✅ 已生成' : '❌ 未生成'}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">查看次数：</span><span class="font-medium text-sm ${viewCount >= viewMax ? 'text-red-500' : ''}">${viewCount} / ${viewMax}（剩余 ${Math.max(0, viewMax - viewCount)} 次）${viewCount >= viewMax ? ' ⚠️ 已用完' : ''}</span></div>
+                                                <div class="flex items-start gap-3"><span class="text-gray-500 text-sm w-24 shrink-0">IP地址：</span><span class="font-mono text-xs text-gray-400">${c.ip_address || '-'}</span></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+                                            ${hasPdf ? `
+                                                <a href="http://localhost:5000/api/rider-contracts/download/${contractId}" target="_blank"
+                                                   class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
+                                                    📥 下载PDF
+                                                </a>
+                                                <button onclick="window.open('http://localhost:5000/api/rider-contracts/admin-view/${contractId}','_blank')"
+                                                        class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
+                                                        👁️ 预览PDF
+                                                </button>
+                                                ${viewCount >= viewMax ? `<button onclick="resetViewCount(${contractId}, '${modalId}')"
+                                                        class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium text-xs transition-all shadow-md inline-flex items-center gap-1"
+                                                        title="重置查看次数，让骑手可以再次查看">🔄 重置</button>` : ''}
+                                            ` : `<span class="text-gray-400 text-sm px-4 py-2.5 bg-gray-200 rounded-xl inline-block">暂无可下载的PDF文件</span>`}
+                                            <button onclick="document.getElementById('${modalId}').remove()"
+                                                    class="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium text-sm transition-all">
+                                                关闭
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            document.body.insertAdjacentHTML('beforeend', modalHtml);
+                        } else {
+                            alert('获取合同详情失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('查看合同详情失败:', error);
+                        alert('网络错误，请稍后重试');
+                    });
+            };
+
+            // 下载合同PDF
+            window.downloadContract = function(contractNo) {
+                window.open(`http://localhost:5000/api/rider-contracts/download/${contractNo}`, '_blank');
+            };
+
+            // 重置查看次数
+            window.resetViewCount = function(contractId, modalId) {
+                if (!confirm('确定要重置该合同的查看次数吗？\n\n重置后骑手可以再次通过链接查看PDF。')) return;
+                
+                fetch(`http://localhost:5000/api/rider-contracts/reset-view/${contractId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ 查看次数已重置！骑手可以重新查看PDF了。');
+                        document.getElementById(modalId).remove();
+                        loadRiderContracts();
+                    } else {
+                        alert('重置失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('重置失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            };
+        });
+    </script>
+</body>
+</html>

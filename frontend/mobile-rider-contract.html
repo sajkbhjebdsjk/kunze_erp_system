@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>骑手合同签署 - 移动版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            position: relative;
+        }
+        .glass-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .form-field { transition: all 0.3s ease; }
+        .form-field:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+        }
+        .signature-pad {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: white;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .contract-preview-card {
+            background: white;
+            color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            line-height: 1.8;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .contract-preview-card p { margin-bottom: 12px; text-align: justify; }
+        .contract-preview-card .section-title { font-weight: 600; color: #0f172a; margin-top: 16px; }
+        .highlight-name { color: #6366f1; font-weight: 600; }
+        .sign-section {
+            border-top: 2px solid #e2e8f0;
+            padding-top: 16px;
+            margin-top: 20px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .toast {
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .loading-spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="glass-header px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-4">
+                <button id="backBtn" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-white/10 hover:bg-slate-700 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5 text-slate-400"></i>
+                </button>
+                <div>
+                    <h1 class="text-xl font-bold" id="pageTitle">骑手合同签署</h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Rider Contract Signing</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pb-24 px-6 py-6">
+            <!-- Step Indicator -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <div id="step1Indicator" class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">1</div>
+                    <span class="text-sm text-slate-300">填写信息</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-slate-700 mx-3"></div>
+                <div class="flex items-center gap-2">
+                    <div id="step2Indicator" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 font-bold text-sm">2</div>
+                    <span class="text-sm text-slate-400">签署确认</span>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div id="formSection" class="space-y-5">
+                <!-- Basic Info Card -->
+                <div class="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+                        基本信息
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="form-field">
+                            <label class="block text-sm font-medium text-slate-300 mb-2">乙方（承揽人）姓名 <span class="text-rose-400">*</span></label>
+                            <input type="text" id="party_b_name" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all" placeholder="请输入您的真实姓名" maxlength="20">
+                        </div>
+                        <div class="form-field">
+                            <label class="block text-sm font-medium text-slate-300 mb-2">身份证号 <span class="text-rose-400">*</span></label>
+                            <input type="text" id="id_card" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all" placeholder="请输入18位身份证号码" maxlength="18">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Info Card -->
+                <div class="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="phone" class="w-5 h-5 text-emerald-400"></i>
+                        联系方式
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="form-field">
+                            <label class="block text-sm font-medium text-slate-300 mb-2">手机号 <span class="text-rose-400">*</span></label>
+                            <input type="tel" id="phone" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all" placeholder="请输入11位手机号" maxlength="11">
+                        </div>
+                        <div class="form-field">
+                            <label class="block text-sm font-medium text-slate-300 mb-2">送达地址 <span class="text-rose-400">*</span></label>
+                            <input type="text" id="address" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all" placeholder="请输入详细地址" maxlength="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact Card -->
+                <div class="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-amber-400"></i>
+                        紧急联系人
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="form-field">
+                                <label class="block text-sm font-medium text-slate-300 mb-2">姓名 <span class="text-rose-400">*</span></label>
+                                <input type="text" id="emergency_name" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all text-sm" placeholder="姓名" maxlength="20">
+                            </div>
+                            <div class="form-field">
+                                <label class="block text-sm font-medium text-slate-300 mb-2">电话 <span class="text-rose-400">*</span></label>
+                                <input type="tel" id="emergency_phone" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all text-sm" placeholder="手机号" maxlength="11">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label class="block text-sm font-medium text-slate-300 mb-2">地址 <span class="text-rose-400">*</span></label>
+                            <input type="text" id="emergency_address" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all" placeholder="紧急联系人地址" maxlength="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract Preview Toggle -->
+                <button id="togglePreview" class="w-full bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-slate-800/80 transition-all">
+                    <span class="font-semibold flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-primary"></i>
+                        查看合同内容
+                    </span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform" id="previewArrow"></i>
+                </button>
+
+                <!-- Contract Preview Content (Hidden by default) -->
+                <div id="contractPreviewSection" class="hidden">
+                    <div class="contract-preview-card" id="contractPreview">
+                        <!-- 合同内容将通过JS动态加载 -->
+                    </div>
+                </div>
+
+                <!-- Next Button -->
+                <button id="nextStepBtn" class="btn-primary w-full text-white py-4 rounded-2xl font-bold text-base shadow-xl shadow-primary/25">
+                    下一步：签署合同
+                </button>
+            </div>
+
+            <!-- Sign Section (Hidden initially) -->
+            <div id="signSection" class="hidden space-y-5">
+                <!-- Info Summary Card -->
+                <div class="bg-gradient-to-br from-primary/20 to-purple-600/20 backdrop-blur-sm border border-primary/30 rounded-2xl p-5">
+                    <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+                        信息确认
+                    </h2>
+                    <div class="space-y-2 text-sm">
+                        <p><span class="text-slate-400">姓名：</span><span id="confirmName" class="text-white font-medium"></span></p>
+                        <p><span class="text-slate-400">身份证号：</span><span id="confirmIdCard" class="text-white font-medium"></span></p>
+                        <p><span class="text-slate-400">手机号：</span><span id="confirmPhone" class="text-white font-medium"></span></p>
+                    </div>
+                </div>
+
+                <!-- Signature Pad Card -->
+                <div class="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5 text-primary"></i>
+                            手写签名
+                        </h2>
+                        <button id="clearSignature" class="text-sm text-rose-400 hover:text-rose-300 font-medium transition-colors flex items-center gap-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            清除重签
+                        </button>
+                    </div>
+                    <canvas id="signatureCanvas" class="signature-pad w-full h-44"></canvas>
+                    <p class="text-xs text-slate-400 mt-3 text-center">请在上方区域手写您的签名</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button id="submitBtn" class="btn-primary w-full text-white py-4 rounded-2xl font-bold text-base shadow-xl shadow-primary/25 flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-5 h-5"></i>
+                        确认签署合同
+                    </button>
+                    <button id="backToFormBtn" class="w-full bg-slate-800/60 backdrop-blur-sm border border-white/10 text-white py-3 rounded-xl font-medium hover:bg-slate-800/80 transition-all">
+                        返回修改信息
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success Section (Hidden initially) -->
+            <div id="successSection" class="hidden space-y-5">
+                <div class="bg-gradient-to-br from-emerald-500/20 to-green-600/20 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center mb-4">
+                    <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="check" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-emerald-400 mb-1">签署成功！</h2>
+                    <p class="text-slate-400 text-xs">您的合同已成功签署并保存</p>
+                </div>
+
+                <div id="signedContractPreview" class="bg-white/95 rounded-2xl overflow-hidden shadow-xl max-h-[55vh] overflow-y-auto">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                            <span class="font-bold text-slate-800 text-sm">已签署合同</span>
+                            <span id="successContractNo" class="text-xs text-slate-500 font-mono"></span>
+                        </div>
+                        <div id="contractContentArea" class="prose prose-sm max-w-none text-slate-700 text-sm leading-relaxed">
+                            <p class="text-slate-400 text-center py-8">正在加载合同内容...</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 text-xs text-slate-400 text-right">
+                            签署时间：<span id="successSignTime"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="acknowledgeBtn" onclick="window.close();" class="btn-primary w-full text-white py-4 rounded-2xl font-bold text-base shadow-xl shadow-primary/25 mt-2">
+                    我已知晓
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 transition-all duration-300 z-[100] w-[280px] pointer-events-none">
+            <div class="toast bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-white/10">
+                <i data-lucide="info" class="w-4 h-4 text-primary flex-shrink-0" id="toastIcon"></i>
+                <p class="text-xs font-medium leading-tight" id="toastMessage">提示信息</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            // Elements
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            let toastTimer = null;
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                if (toastTimer) clearTimeout(toastTimer);
+                
+                const icons = {
+                    'info': 'info',
+                    'success': 'check-circle',
+                    'error': 'alert-circle',
+                    'warning': 'alert-triangle'
+                };
+                
+                toastIcon.setAttribute('data-lucide', icons[type] || 'info');
+                lucide.createIcons();
+                
+                toastMessage.textContent = message;
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                
+                toastTimer = setTimeout(() => {
+                    toast.classList.add('-translate-y-full', 'opacity-0');
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                }, 3000);
+            }
+
+            // Initialize signature canvas
+            function initSignatureCanvas() {
+                const canvas = document.getElementById('signatureCanvas');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let isDrawing = false;
+                let hasSignature = false;
+                let lastX = 0, lastY = 0;
+
+                // Set canvas size
+                function resizeCanvas() {
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * window.devicePixelRatio;
+                    canvas.height = rect.height * window.devicePixelRatio;
+                    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                    ctx.strokeStyle = '#1a1a2e';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    // Fill with white background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, rect.width, rect.height);
+                }
+
+                resizeCanvas();
+
+                function getPos(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    if (e.touches) {
+                        return {
+                            x: e.touches[0].clientX - rect.left,
+                            y: e.touches[0].clientY - rect.top
+                        };
+                    }
+                    return {
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                    };
+                }
+
+                function startDraw(e) {
+                    e.preventDefault();
+                    isDrawing = true;
+                    const pos = getPos(e);
+                    lastX = pos.x;
+                    lastY = pos.y;
+                }
+
+                function draw(e) {
+                    if (!isDrawing) return;
+                    e.preventDefault();
+                    const pos = getPos(e);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    
+                    lastX = pos.x;
+                    lastY = pos.y;
+                    hasSignature = true;
+                }
+
+                function endDraw() {
+                    isDrawing = false;
+                }
+
+                function clearCanvas() {
+                    const rect = canvas.getBoundingClientRect();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, rect.width, rect.height);
+                    hasSignature = false;
+                }
+
+                // Mouse events
+                canvas.addEventListener('mousedown', startDraw);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', endDraw);
+                canvas.addEventListener('mouseleave', endDraw);
+
+                // Touch events
+                canvas.addEventListener('touchstart', startDraw, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', endDraw);
+
+                // Clear button
+                document.getElementById('clearSignature').addEventListener('click', clearCanvas);
+
+                // Expose functions globally
+                window.getSignatureData = () => {
+                    if (!hasSignature) return null;
+                    return canvas.toDataURL('image/png');
+                };
+
+                window.hasValidSignature = () => hasSignature;
+            }
+
+            // Load contract content
+            function loadContractContent() {
+                const preview = document.getElementById('contractPreview');
+                preview.innerHTML = `
+                    <div style="text-align:center;margin-bottom:16px;">
+                        <h2 style="font-size:18px;font-weight:bold;color:#0f172a;">配送服务合作协议</h2>
+                    </div>
+                    <p class="no-indent"><strong>甲方（委托人）：</strong></p>
+                    <p class="no-indent"><strong>乙方（承揽人）：</strong><span id="previewName" class="highlight-name">待填写</span></p>
+                    <p class="no-indent"><strong>身份证号（承揽人）：</strong><span id="previewIdCard" class="highlight-name">待填写</span></p>
+                    
+                    <p><b>鉴于：</b>1、甲方是第三方专业互联网平台的代理商，依托该互联网平台为餐饮服务商与用户进行磋商、达成电子商务交易信息提供信息中介、交易场所（平台服务）...</p>
+                    
+                    <p class="section-title"><b>一</b>、甲方将平台提供的供需双方的交易信息提供给乙方，乙方收到信息后接单配送...</p>
+                    
+                    <p class="section-title"><b>二</b>、乙方自愿承揽配送业务，配送的交通工具由乙方自理...</p>
+                    
+                    <div class="sign-section">
+                        <p style="text-align:center;font-weight:bold;color:#6366f1;">（以下为签署栏）</p>
+                        <div style="display:flex;justify-content:space-between;margin-top:16px;">
+                            <div><p>公司盖章：</p></div>
+                            <div>
+                                <p>乙方（承揽人）签字：<span id="previewSignStatus" style="color:#999;">待签名</span></p>
+                                <p>日期：____年____月____日</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Bind input to preview
+                const bindPreview = (inputId, previewId) => {
+                    const input = document.getElementById(inputId);
+                    const preview = document.getElementById(previewId);
+                    if (input && preview) {
+                        input.addEventListener('input', () => {
+                            preview.textContent = input.value.trim() || '待填写';
+                        });
+                    }
+                };
+
+                bindPreview('party_b_name', 'previewName');
+                bindPreview('id_card', 'previewIdCard');
+            }
+
+            // Validate form step 1
+            function validateFormStep1() {
+                const partyBName = document.getElementById('party_b_name').value.trim();
+                const idCard = document.getElementById('id_card').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const emergencyName = document.getElementById('emergency_name').value.trim();
+                const emergencyPhone = document.getElementById('emergency_phone').value.trim();
+                const emergencyAddress = document.getElementById('emergency_address').value.trim();
+
+                if (!partyBName) {
+                    showToast('请输入乙方（承揽人）姓名', 'warning');
+                    document.getElementById('party_b_name').focus();
+                    return false;
+                }
+                if (!idCard || idCard.length !== 18) {
+                    showToast('请输入正确的18位身份证号', 'warning');
+                    document.getElementById('id_card').focus();
+                    return false;
+                }
+                if (!phone || !/^1\d{10}$/.test(phone)) {
+                    showToast('请输入正确的11位手机号', 'warning');
+                    document.getElementById('phone').focus();
+                    return false;
+                }
+                if (!address) {
+                    showToast('请输入送达地址', 'warning');
+                    document.getElementById('address').focus();
+                    return false;
+                }
+                if (!emergencyName) {
+                    showToast('请输入紧急联系人姓名', 'warning');
+                    document.getElementById('emergency_name').focus();
+                    return false;
+                }
+                if (!emergencyPhone || !/^1\d{10}$/.test(emergencyPhone)) {
+                    showToast('请输入正确的紧急联系人电话', 'warning');
+                    document.getElementById('emergency_phone').focus();
+                    return false;
+                }
+                if (!emergencyAddress) {
+                    showToast('请输入紧急联系人地址', 'warning');
+                    document.getElementById('emergency_address').focus();
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Switch between sections
+            function showSection(sectionId) {
+                const sections = ['formSection', 'signSection', 'successSection'];
+                sections.forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+                document.getElementById(sectionId).classList.remove('hidden');
+
+                // Update step indicators
+                const step1Ind = document.getElementById('step1Indicator');
+                const step2Ind = document.getElementById('step2Indicator');
+
+                if (sectionId === 'formSection') {
+                    step1Ind.className = 'w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm';
+                    step2Ind.className = 'w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 font-bold text-sm';
+                } else if (sectionId === 'signSection') {
+                    step1Ind.className = 'w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm';
+                    step2Ind.className = 'w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm';
+                } else if (sectionId === 'successSection') {
+                    step1Ind.className = 'w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm';
+                    step2Ind.className = 'w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm';
+                }
+            }
+
+            // Submit contract
+            async function submitContract() {
+                if (!window.hasValidSignature()) {
+                    showToast('请先在画板上手写签名', 'warning');
+                    return;
+                }
+
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner"></span> 正在提交...';
+
+                try {
+                    const response = await fetch('http://localhost:5000/api/rider-contracts/sign', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            party_b_name: document.getElementById('party_b_name').value.trim(),
+                            id_card: document.getElementById('id_card').value.trim(),
+                            phone: document.getElementById('phone').value.trim(),
+                            address: document.getElementById('address').value.trim(),
+                            emergency_name: document.getElementById('emergency_name').value.trim(),
+                            emergency_phone: document.getElementById('emergency_phone').value.trim(),
+                            emergency_address: document.getElementById('emergency_address').value.trim(),
+                            signature_image: window.getSignatureData()
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('successContractNo').textContent = result.data.contract_no;
+                        document.getElementById('successSignTime').textContent = result.data.sign_time;
+                        showSection('successSection');
+                        showToast('合同签署成功！', 'success');
+
+                        const contractId = result.data.id;
+                        const contentArea = document.getElementById('contractContentArea');
+
+                        fetch(`http://localhost:5000/api/rider-contracts/signed/${contractId}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success && data.data && data.data.content) {
+                                    contentArea.innerHTML = data.data.content;
+                                } else {
+                                    contentArea.innerHTML = '<p class="text-slate-400 text-center py-8">合同内容加载完成，请下载PDF查看完整版</p>';
+                                }
+                            })
+                            .catch(() => {
+                                contentArea.innerHTML = '<p class="text-slate-400 text-center py-8">合同已签署保存，可前往后台查看完整版</p>';
+                            });
+                    } else {
+                        showToast(result.message || '签署失败，请重试', 'error');
+                    }
+                } catch (error) {
+                    console.error('Submit error:', error);
+                    showToast('网络错误，请检查连接后重试', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i> 确认签署合同';
+                    lucide.createIcons();
+                }
+            }
+
+            // Event listeners
+            document.getElementById('backBtn').addEventListener('click', () => {
+                window.history.back();
+            });
+
+            document.getElementById('togglePreview').addEventListener('click', () => {
+                const section = document.getElementById('contractPreviewSection');
+                const arrow = document.getElementById('previewArrow');
+                section.classList.toggle('hidden');
+                arrow.style.transform = section.classList.contains('hidden') ? '' : 'rotate(180deg)';
+            });
+
+            document.getElementById('nextStepBtn').addEventListener('click', () => {
+                if (validateFormStep1()) {
+                    // Update confirm info
+                    document.getElementById('confirmName').textContent = document.getElementById('party_b_name').value.trim();
+                    document.getElementById('confirmIdCard').textContent = document.getElementById('id_card').value.trim();
+                    document.getElementById('confirmPhone').textContent = document.getElementById('phone').value.trim();
+                    
+                    showSection('signSection');
+                    initSignatureCanvas();
+                }
+            });
+
+            document.getElementById('backToFormBtn').addEventListener('click', () => {
+                showSection('formSection');
+            });
+
+            document.getElementById('submitBtn').addEventListener('click', submitContract);
+
+            // Check if already signed (by ID card in URL)
+            const urlParams = new URLSearchParams(window.location.search);
+            const checkIdCard = urlParams.get('id_card');
+            
+            if (checkIdCard) {
+                document.getElementById('id_card').value = checkIdCard;
+                fetch(`http://localhost:5000/api/rider-contracts/check-status/${checkIdCard}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.signed) {
+                            showToast(`您已于 ${data.sign_time} 签署过合同`, 'info');
+                        }
+                    })
+                    .catch(err => console.log('Check status error:', err));
+            }
+
+            // Initialize
+            loadContractContent();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薪资方案配置系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677FF',
+                        secondary: '#0958D9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        bgGray: '#F5F7FA',
+                        borderGray: '#E5E8EF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F5F7FA 0%, #E8ECF4 100%);
+            min-height: 100vh;
+        }
+        .container-main {
+            width: 100%;
+            padding: 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+        .workflow-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .workflow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(22, 119, 255, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(22, 119, 255, 0.3);
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu active">配置工具</a>
+                                    <ul class="sub-menu show">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="salary-plan-config.html" class="nav-item active" data-page="listPage">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <!-- 方案列表页 -->
+                <div id="listPage" class="container-main">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">薪资方案管理</h1>
+                                <p class="text-gray-500 text-sm">管理和配置各类薪资方案</p>
+                            </div>
+                            <button id="addPlanBtn" class="btn-primary text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                                新增方案
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 方案卡片列表 -->
+                    <div id="planList" class="grid grid-cols-3 gap-6">
+                        <!-- 方案卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 配置页面 -->
+                <div id="configPage" class="container-main hidden">
+                    <!-- 头部 -->
+                    <div class="glass-card rounded-2xl p-8 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2">薪资方案配置</h1>
+                                <p class="text-gray-500 text-sm">配置薪资方案的详细信息</p>
+                            </div>
+                            <button id="backBtn" class="glass-card px-4 py-2 rounded-lg flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                返回列表
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- 左侧配置区 -->
+                        <div class="col-span-2 space-y-6">
+                            <!-- 基础信息 -->
+                            <div class="glass-card rounded-2xl p-6 slide-in">
+                                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-primary"></i>
+                                    基础信息
+                                </h2>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">方案名称</label>
+                                        <input type="text" id="planName" placeholder="请输入方案名称" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">方案类型</label>
+                                        <select id="planType" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors">
+                                            <option>骑手薪资方案</option>
+                                            <option>管理层薪资方案</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">方案描述</label>
+                                        <textarea id="planDesc" rows="3" placeholder="请输入方案描述" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors resize-none"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 上传方案 -->
+                            <div class="glass-card rounded-2xl p-6 slide-in" style="animation-delay: 0.1s">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <i data-lucide="upload" class="w-5 h-5 text-primary"></i>
+                                        上传方案
+                                    </h2>
+                                </div>
+                                <div id="uploadContent" class="p-4 bg-gray-50 rounded-xl border-2 border-gray-200 min-h-[300px]">
+                                    <div class="flex flex-col items-center justify-center py-12">
+                                        <i data-lucide="file-json" class="w-16 h-16 text-gray-400 mb-4"></i>
+                                        <p class="text-gray-500 mb-4">点击下方按钮上传薪资方案文件</p>
+                                        <input type="file" id="fileUpload" accept=".doc,.docx,.pdf" class="hidden">
+                                        <button id="uploadBtn" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+                                            <i data-lucide="upload" class="w-4 h-4"></i>
+                                            选择文件
+                                        </button>
+                                        <div id="fileInfo" class="mt-4 text-center text-sm text-gray-600 hidden"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧操作区 -->
+                        <div class="col-span-1">
+                            <div class="glass-card rounded-2xl p-6 slide-in sticky top-8" style="animation-delay: 0.2s">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <i data-lucide="settings" class="w-5 h-5 text-primary"></i>
+                                        方案设置
+                                    </h2>
+                                </div>
+
+                                <!-- 方案状态 -->
+                                <div class="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                            <i data-lucide="toggle-right" class="w-5 h-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">方案状态</p>
+                                            <p class="text-xs text-gray-500">默认未启用</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 保存按钮 -->
+                                <button id="saveBtn" class="w-full mt-6 btn-primary text-white py-3 rounded-xl font-semibold">
+                                    保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="js/index.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 页面元素
+            const listPage = document.getElementById('listPage');
+            const configPage = document.getElementById('configPage');
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            const backBtn = document.getElementById('backBtn');
+            const planList = document.getElementById('planList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileUpload = document.getElementById('fileUpload');
+            const fileInfo = document.getElementById('fileInfo');
+            const saveBtn = document.getElementById('saveBtn');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            let selectedFile = null;
+
+            let planCount = 0;
+            let currentPlanId = null;
+
+            // 初始化图标
+            lucide.createIcons();
+
+            // 加载方案数据
+            loadPlanData();
+
+            // 导航栏点击事件
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // 只处理薪资方案配置内部的导航
+                    if (this.getAttribute('data-page')) {
+                        e.preventDefault();
+                        const targetPage = this.getAttribute('data-page');
+                        
+                        // 显示对应页面
+                        if (targetPage === 'listPage') {
+                            listPage.classList.remove('hidden');
+                            configPage.classList.add('hidden');
+                        } else if (targetPage === 'configPage') {
+                            // 重置表单
+                            document.getElementById('planName').value = '';
+                            document.getElementById('planType').value = '骑手薪资方案';
+                            document.getElementById('planDesc').value = '';
+                            selectedFile = null;
+                            fileInfo.classList.add('hidden');
+                            
+                            listPage.classList.add('hidden');
+                            configPage.classList.remove('hidden');
+                        }
+                        
+                        window.scrollTo(0, 0);
+                    }
+                    // 其他导航项保持默认行为
+                });
+            });
+
+            // 新增方案
+            addPlanBtn.addEventListener('click', function() {
+                // 重置表单
+                document.getElementById('planName').value = '';
+                document.getElementById('planType').value = '骑手薪资方案';
+                document.getElementById('planDesc').value = '';
+                selectedFile = null;
+                fileInfo.classList.add('hidden');
+                currentPlanId = null;
+                
+                // 显示配置页面
+                listPage.classList.add('hidden');
+                configPage.classList.remove('hidden');
+                
+                window.scrollTo(0, 0);
+            });
+
+            // 上传方案文件
+            uploadBtn.addEventListener('click', function() {
+                fileUpload.click();
+            });
+            
+            // 文件选择事件
+            fileUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFile = file;
+                    fileInfo.textContent = `已选择: ${file.name}`;
+                    fileInfo.classList.remove('hidden');
+                }
+            });
+
+            // 返回列表
+            backBtn.addEventListener('click', function() {
+                configPage.classList.add('hidden');
+                listPage.classList.remove('hidden');
+                
+                window.scrollTo(0, 0);
+            });
+
+
+
+            // 保存配置
+            saveBtn.addEventListener('click', function() {
+                const planName = document.getElementById('planName').value;
+                const planType = document.getElementById('planType').value;
+                const description = document.getElementById('planDesc').value;
+                
+                if (!planName || !planType) {
+                    alert('请填写方案名称和方案类型');
+                    return;
+                }
+                
+                if (!selectedFile) {
+                    alert('请上传薪资方案文件');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('plan_name', planName);
+                formData.append('plan_type', planType);
+                formData.append('description', description);
+                formData.append('file', selectedFile);
+                
+                let url = 'http://localhost:5000/api/salary-plans';
+                let method = 'POST';
+                
+                // 如果是编辑现有方案，使用PUT请求
+                if (currentPlanId) {
+                    url = `http://localhost:5000/api/salary-plans/${currentPlanId}`;
+                    method = 'PUT';
+                }
+                
+                // 发送API请求
+                fetch(url, {
+                    method: method,
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('薪资方案保存成功');
+                        configPage.classList.add('hidden');
+                        listPage.classList.remove('hidden');
+                        loadPlanData();
+                        currentPlanId = null;
+                        selectedFile = null;
+                        fileInfo.classList.add('hidden');
+                    } else {
+                        alert('保存失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('保存薪资方案失败:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            });
+
+            // 加载方案数据
+            function loadPlanData() {
+                // 发送API请求
+                fetch('http://localhost:5000/api/salary-plans')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            planCount = data.data.length;
+                            updatePlanList(data.data);
+                        } else {
+                            console.error('加载方案数据失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载方案数据失败:', error);
+                    });
+            }
+
+            // 更新方案列表
+            function updatePlanList(plans) {
+                planList.innerHTML = '';
+                
+                if (plans.length === 0) {
+                    planList.innerHTML = `
+                        <div class="col-span-3 flex flex-col items-center justify-center h-64 glass-card rounded-2xl">
+                            <i data-lucide="inbox" class="w-12 h-12 text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">暂无薪资方案配置</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+                
+                plans.forEach(plan => {
+                    const card = document.createElement('div');
+                    card.className = 'workflow-card glass-card rounded-2xl p-6 fade-in';
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                                <i data-lucide="dollar-sign" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <span class="px-3 py-1 ${plan.status === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} text-xs font-medium rounded-full">${plan.status === 'enabled' ? '启用中' : '已停用'}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${plan.plan_name}</h3>
+                        <p class="text-gray-500 text-sm mb-6">${plan.description || '暂无描述'}</p>
+                        <div class="flex gap-3">
+                            <button class="config-btn flex-1 bg-primary text-white px-4 py-2.5 rounded-lg font-medium hover:bg-secondary transition-colors flex items-center justify-center gap-2" onclick="editPlan(${plan.id})">
+                                <i data-lucide="settings" class="w-4 h-4"></i>
+                                配置
+                            </button>
+                            <button class="status-btn w-12 h-11 ${plan.status === 'enabled' ? 'border-2 border-yellow-200 text-yellow-500 hover:bg-yellow-50' : 'border-2 border-green-200 text-green-500 hover:bg-green-50'} rounded-lg transition-colors flex items-center justify-center" onclick="togglePlanStatus(${plan.id}, '${plan.status}')">
+                                <i data-lucide="${plan.status === 'enabled' ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                            </button>
+                            <button class="delete-btn w-12 h-11 border-2 border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" onclick="deletePlan(${plan.id})">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    planList.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            // 编辑方案
+            window.editPlan = function(planId) {
+                currentPlanId = planId;
+                // 发送API请求
+                fetch(`http://localhost:5000/api/salary-plans/${planId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const plan = data.plan;
+                            document.getElementById('planName').value = plan.plan_name;
+                            document.getElementById('planType').value = plan.plan_type;
+                            document.getElementById('planDesc').value = plan.description || '';
+                            
+                            // 重置文件上传状态
+                            selectedFile = null;
+                            fileInfo.classList.add('hidden');
+                            
+                            // 显示配置页面
+                            listPage.classList.add('hidden');
+                            configPage.classList.remove('hidden');
+                            window.scrollTo(0, 0);
+                        } else {
+                            alert('加载方案详情失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('加载方案详情失败:', error);
+                        alert('网络错误，请稍后重试');
+                    });
+            };
+
+            // 切换方案状态
+            window.togglePlanStatus = function(planId, currentStatus) {
+                const newStatus = currentStatus === 'enabled' ? 'disabled' : 'enabled';
+                const action = currentStatus === 'enabled' ? '停用' : '启用';
+                
+                if (confirm(`确定要${action}这个方案吗？`)) {
+                    // 发送API请求
+                    fetch(`http://localhost:5000/api/salary-plans/${planId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`方案${action}成功`);
+                            loadPlanData();
+                        } else {
+                            alert(`${action}失败: ` + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`${action}方案失败:`, error);
+                        alert('网络错误，请稍后重试');
+                    });
+                }
+            };
+
+            // 删除方案
+            window.deletePlan = function(planId) {
+                if (confirm('确定要删除这个方案吗？')) {
+                    // 发送API请求
+                    fetch(`http://localhost:5000/api/salary-plans/${planId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('方案删除成功');
+                            loadPlanData();
+                        } else {
+                            alert('删除失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('删除方案失败:', error);
+                        alert('网络错误，请稍后重试');
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>

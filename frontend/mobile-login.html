@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>登录 - 入离职流程管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        dark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
+        .login-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 20px; }
+        .gradient-bg { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="h-11 flex justify-between items-end px-8 pb-1 text-xs font-semibold opacity-60 mb-12">
+            <span>9:41</span>
+            <div class="flex gap-1.5"><i data-lucide="signal" class="w-3 h-3"></i><i data-lucide="wifi" class="w-3 h-3"></i><i data-lucide="battery" class="w-3 h-3"></i></div>
+        </div>
+
+        <!-- Logo and Title -->
+        <div class="text-center mb-16">
+            <div class="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/30">
+                <i data-lucide="shield-check" class="text-primary w-10 h-10"></i>
+            </div>
+            <h1 class="text-2xl font-display font-bold">入离职流程管理</h1>
+            <p class="text-xs text-slate-500 mt-2">Workflow Management System</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="gradient-bg rounded-3xl p-6 mb-8">
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="text-sm font-medium block mb-2">用户名</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4"></i>
+                        <input type="text" id="username" class="w-full bg-slate-800 border border-white/10 rounded-xl p-4 pl-12 text-sm" placeholder="请输入用户名" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm font-medium block mb-2">密码</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4"></i>
+                        <input type="password" id="password" class="w-full bg-slate-800 border border-white/10 rounded-xl p-4 pl-12 text-sm" placeholder="请输入密码" required>
+                    </div>
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-primary h-14 rounded-xl font-bold text-sm shadow-xl shadow-primary/20">登录</button>
+            </form>
+        </div>
+
+        <!-- Quick Access -->
+        <div class="flex justify-center space-x-8 mb-8">
+            <button class="text-sm text-slate-500">忘记密码</button>
+            <button class="text-sm text-primary">立即注册</button>
+        </div>
+
+        <!-- Version Info -->
+        <div class="text-center text-xs text-slate-600 mt-auto">
+            <p>版本 v1.0.0</p>
+            <p class="mt-1">© 2026 入离职流程管理系统</p>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 transition-all duration-500 z-[100] w-[280px]">
+        <div class="bg-primary/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <p class="text-xs font-bold leading-tight" id="toast-message">登录成功！</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const loginForm = document.getElementById('login-form');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            let toastTimer = null;
+
+            // 显示Toast通知
+            function showToast(message) {
+                if(toastTimer) clearTimeout(toastTimer);
+                toastMessage.textContent = message;
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                toastTimer = setTimeout(() => {
+                    toast.classList.add('-translate-y-full', 'opacity-0');
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                }, 2500);
+            }
+
+            // 登录表单提交
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                if (!username || !password) {
+                    showToast('用户名和密码不能为空');
+                    return;
+                }
+
+                // 调用后端登录API
+                fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 存储用户信息到本地存储
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        showToast('登录成功！');
+                        // 登录成功后跳转到首页
+                        setTimeout(() => {
+                            window.location.href = 'mobile-approval.html';
+                        }, 1500);
+                    } else {
+                        showToast(data.message || '登录失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('登录请求失败:', error);
+                    showToast('网络错误，请稍后重试');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

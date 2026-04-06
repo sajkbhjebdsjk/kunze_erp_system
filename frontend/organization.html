@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织架构管理 - ERP系统</title>
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        .organization-container {
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 120px);
+            overflow-x: auto;
+        }
+        .organization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .organization-header h2 {
+            margin: 0;
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .btn {
+            padding: 12px 24px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+        .btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .department-tree {
+            flex: 0 0 350px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+        .department-tree-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .department-tree-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 200px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            padding-right: 32px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .search-box::after {
+            content: '🔍';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        .tree-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .tree-node {
+            margin-bottom: 8px;
+        }
+        .tree-node-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        .tree-node-header:hover {
+            background-color: #f3f4f6;
+        }
+        .tree-node-header.active {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+            font-weight: 500;
+        }
+        .tree-node-toggle {
+            margin-right: 8px;
+            font-size: 10px;
+            color: #9ca3af;
+            transition: transform 0.2s ease;
+        }
+        .tree-node-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        .tree-node-name {
+            flex: 1;
+        }
+        .tree-node-count {
+            color: #6b7280;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .tree-node-children {
+            margin-left: 20px;
+            margin-top: 4px;
+            display: block;
+        }
+        .tree-node-children.collapsed {
+            display: none;
+        }
+        .department-details {
+            flex: 1;
+            min-width: 0;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+        .department-details-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .department-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .department-info h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .department-info .department-type {
+            padding: 4px 12px;
+            background-color: #e0e7ff;
+            color: #4f46e5;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .department-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .department-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .section {
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .section-header h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .section-count {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .staff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .staff-table th,
+        .staff-table td {
+            padding: 6px 4px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .staff-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 11px;
+        }
+        .staff-table tr:hover {
+            background-color: #f9fafb;
+        }
+        .staff-table th:nth-child(1),
+        .staff-table td:nth-child(1) {
+            width: 80px;
+        }
+        .staff-table th:nth-child(2),
+        .staff-table td:nth-child(2) {
+            width: 120px;
+        }
+        .staff-table th:nth-child(3),
+        .staff-table td:nth-child(3) {
+            width: 80px;
+        }
+        .staff-table th:nth-child(4),
+        .staff-table td:nth-child(4) {
+            width: 80px;
+        }
+        .staff-table th:nth-child(5),
+        .staff-table td:nth-child(5) {
+            width: 80px;
+        }
+        .staff-table th:nth-child(6),
+        .staff-table td:nth-child(6) {
+            width: 70px;
+        }
+        .staff-table .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .action-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s ease;
+        }
+        .action-link:hover {
+            color: #1d4ed8;
+        }
+        .action-link.delete {
+            color: #ef4444;
+        }
+        .action-link.delete:hover {
+            color: #dc2626;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-badge.approved {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-badge.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+        .close:hover {
+            color: #2d3748;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        .btn.cancel {
+            background-color: #718096;
+        }
+        .btn.cancel:hover {
+            background-color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div style="display: flex; align-items: center;">
+                <h1>ERP系统</h1>
+                <div class="company-info-container">
+                    <span class="company-info" id="company-info">杭州坤泽物流有限公司-总商</span>
+                    <div class="city-dropdown" id="city-dropdown">
+                        <div class="dropdown-content">
+                            <a href="#" data-city="all">杭州坤泽物流有限公司-总商</a>
+                            <a href="#" data-city="hangzhou">杭州坤泽物流有限公司-杭州</a>
+                            <a href="#" data-city="wuhan">杭州坤泽物流有限公司-武汉</a>
+                            <a href="#" data-city="shenyang">杭州坤泽物流有限公司-沈阳</a>
+                            <a href="#" data-city="jinhua">杭州坤泽物流有限公司-金华</a>
+                            <a href="#" data-city="shaoxing">杭州坤泽物流有限公司-绍兴</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">管</div>
+                    <div class="user-details">
+                        <span id="username"></span>
+                        <span class="user-position" id="user-position"></span>
+                    </div>
+                </div>
+                <button id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar">
+                <nav class="tree-nav">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html" class="nav-item">首页</a>
+                        </li>
+                        <li>
+                            <a href="rider-overview.html" class="nav-item">骑手管理</a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">KPI管理</a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">KPI达成</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">月累计划达成</a></li>
+                                        <li><a href="#" class="nav-item">日实时达成</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">出勤管理</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">有效出勤达成率</a></li>
+                                        <li><a href="#" class="nav-item">时段出勤达成率</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu">经营管理</a>
+                            <ul class="sub-menu">
+                                <li><a href="#" class="nav-item">招聘成本</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">骑手成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">全职成本</a></li>
+                                        <li><a href="#" class="nav-item">骑手薪资表</a></li>
+                                        <li><a href="#" class="nav-item">兼职成本</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">系统罚单</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">管理成本</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="#" class="nav-item">管理人员薪资表</a></li>
+                                        <li><a href="#" class="nav-item">绩效考核达成情况</a></li>
+                                        <li><a href="#" class="nav-item">管理成本预估</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" class="nav-item">利润预估</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
+                                <li><a href="organization.html" class="nav-item active">组织架构</a></li>
+                                <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
+                                <li><a href="user-management.html" class="nav-item">账号管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="role-management.html" class="nav-item">角色管理</a></li>
+                                <li>
+                                    <a href="#" class="nav-item with-submenu">配置工具</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
+                                        <li><a href="#" class="nav-item">招聘政策配置</a></li>
+                                        <li><a href="#" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
+                                        <li><a href="#" class="nav-item">固定费用配置</a></li>
+                                        <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="main">
+                <div class="organization-header">
+                    <h2>组织架构管理</h2>
+                    <button class="btn" id="add-department-btn">新建部门</button>
+                </div>
+                <div class="organization-container">
+                    <!-- 左侧部门树 -->
+                    <div class="department-tree">
+                        <div class="department-tree-header">
+                            <h3>组织架构</h3>
+                            <div class="search-box">
+                                <input type="text" placeholder="请输入团队名称">
+                            </div>
+                        </div>
+                        <div class="tree-content">
+                            <!-- 部门树将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧详细信息 -->
+                    <div class="department-details">
+                        <div class="department-details-header">
+                            <div class="department-info">
+                                <h3>杭州坤泽-临安沃尔玛（钱王街店）</h3>
+                                <span class="department-type">配送部门</span>
+                            </div>
+                            <div class="department-actions">
+                                <button class="btn btn-sm btn-secondary">编辑</button>
+                                <button class="btn btn-sm btn-danger">删除</button>
+                                <button class="btn btn-sm">
+                                    添加 ▼
+                                </button>
+                            </div>
+                        </div>
+                        <div class="department-content">
+                            <!-- 管理人员信息 -->
+                            <div class="section">
+                                <div class="section-header">
+                                    <h4>管理人员信息</h4>
+                                    <span class="section-count">共计0人</span>
+                                </div>
+                                <table class="staff-table">
+                                    <thead>
+                                        <tr>
+                                            <th>姓名</th>
+                                            <th>职位</th>
+                                            <th>工作性质</th>
+                                            <th>审核状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: #6b7280;">暂无管理人员</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+        </footer>
+    </div>
+    
+    <!-- 添加/编辑部门模态框 -->
+    <div class="modal" id="department-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加部门</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="department-form">
+                <input type="hidden" id="department-id">
+                <div class="form-group">
+                    <label for="department-name">部门名称</label>
+                    <input type="text" id="department-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="parent-department">上级部门</label>
+                    <select id="parent-department">
+                        <option value="0">无（顶级部门）</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="department-level">部门级别</label>
+                    <select id="department-level" required>
+                        <option value="1">一级部门</option>
+                        <option value="2">二级部门</option>
+                        <option value="3">三级部门</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn cancel" id="cancel-btn">取消</button>
+                    <button type="submit" class="btn" id="save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 人员信息模态框 -->
+    <div class="staff-modal" id="staff-modal">
+        <div class="staff-modal-content">
+            <div class="staff-modal-header">
+                <h3 id="staff-modal-title">岗位人员信息</h3>
+                <span class="close" id="staff-modal-close">&times;</span>
+            </div>
+            <div class="staff-list" id="staff-list">
+                <!-- 人员信息将通过JavaScript动态生成 -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn cancel" id="staff-modal-cancel">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <script src="js/index.js"></script>
+    <script>
+        // 注意：数据加载已由 index.js 中的 checkLoginStatus -> updateCityData 自动处理
+        // 这里只处理模态框相关的事件绑定
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模态框相关
+            const modal = document.getElementById('department-modal');
+            const addBtn = document.getElementById('add-department-btn');
+            const closeBtn = document.querySelector('.close');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const form = document.getElementById('department-form');
+            
+            // 打开添加部门模态框
+            addBtn.addEventListener('click', function() {
+                document.getElementById('modal-title').textContent = '添加部门';
+                document.getElementById('department-id').value = '';
+                document.getElementById('department-name').value = '';
+                document.getElementById('parent-department').value = '0';
+                document.getElementById('department-level').value = '1';
+                modal.style.display = 'block';
+            });
+            
+            // 关闭模态框
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // 提交表单
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveDepartment();
+            });
+            
+            // 绑定树节点点击事件
+            bindTreeNodeEvents();
+        });
+        
+        function bindTreeNodeEvents() {
+            // 树节点点击事件
+            const treeNodeHeaders = document.querySelectorAll('.tree-node-header');
+            treeNodeHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    // 切换激活状态
+                    document.querySelectorAll('.tree-node-header').forEach(h => h.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换展开/折叠状态
+                    const toggle = this.querySelector('.tree-node-toggle');
+                    if (toggle) {
+                        toggle.classList.toggle('collapsed');
+                        const children = this.nextElementSibling;
+                        if (children && children.classList.contains('tree-node-children')) {
+                            children.classList.toggle('collapsed');
+                        }
+                    }
+                    
+                    // 更新右侧详情
+                    const departmentId = this.getAttribute('data-id');
+                    updateDepartmentDetails(departmentId);
+                });
+            });
+        }
+        
+        function loadDepartments(city) {
+            // 获取当前选择的城市
+            const selectedCity = city || localStorage.getItem('selectedCity') || 'all';
+            
+            // 构建查询参数
+            let url = 'http://127.0.0.1:5000/api/stations';
+            if (selectedCity && selectedCity !== 'all') {
+                url += `?city_code=${selectedCity}`;
+            }
+            
+            // 从API获取站点数据
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 构建完整的部门树数据
+                        const departments = [
+                            { department_id: 1, department_name: '杭州坤泽物流有限公司', parent_id: 0, level: 1, staff_count: 1518 }
+                        ];
+                        // 添加从API获取的站点数据
+                        departments.push(...data.stations);
+                        populateParentDepartmentSelect(departments);
+                        // 更新部门树
+                        updateDepartmentTree(departments);
+                    } else {
+                        console.error('获取站点数据失败:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                });
+        }
+        
+        function updateDepartmentTree(departments) {
+            const treeContent = document.querySelector('.tree-content');
+            if (!treeContent) return;
+            
+            // 清空现有内容
+            treeContent.innerHTML = '';
+            
+            // 创建部门映射，方便查找父节点
+            const deptMap = {};
+            departments.forEach(dept => {
+                deptMap[dept.department_id] = dept;
+            });
+            
+            // 创建总公司节点
+            const rootNode = document.createElement('div');
+            rootNode.className = 'tree-node';
+            rootNode.innerHTML = `
+                <div class="tree-node-header active" data-id="1">
+                    <span class="tree-node-toggle">▶</span>
+                    <span class="tree-node-name">杭州坤泽物流有限公司</span>
+                    <span class="tree-node-count"></span>
+                </div>
+                <div class="tree-node-children">
+                </div>
+            `;
+            treeContent.appendChild(rootNode);
+            
+            // 构建层次结构
+            const rootChildren = rootNode.querySelector('.tree-node-children');
+            
+            // 先添加区域节点
+            const areas = departments.filter(dept => dept.parent_id == '1' && dept.department_id != '1');
+            areas.forEach(area => {
+                const areaNode = document.createElement('div');
+                areaNode.className = 'tree-node';
+                areaNode.innerHTML = `
+                    <div class="tree-node-header" data-id="${area.department_id}">
+                        <span class="tree-node-toggle">▶</span>
+                        <span class="tree-node-name">${area.department_name}</span>
+                        <span class="tree-node-count">(${area.staff_count}人)</span>
+                    </div>
+                    <div class="tree-node-children">
+                    </div>
+                `;
+                rootChildren.appendChild(areaNode);
+                
+                // 为每个区域添加站点节点
+                const areaChildren = areaNode.querySelector('.tree-node-children');
+                const stations = departments.filter(dept => dept.parent_id == area.department_id);
+                stations.forEach(station => {
+                    const stationNode = document.createElement('div');
+                    stationNode.className = 'tree-node';
+                    stationNode.innerHTML = `
+                        <div class="tree-node-header" data-id="${station.department_id}">
+                            <span class="tree-node-name">${station.department_name}</span>
+                            <span class="tree-node-count">(${station.staff_count}人)</span>
+                        </div>
+                    `;
+                    areaChildren.appendChild(stationNode);
+                });
+            });
+            
+            // 重新绑定事件
+            bindTreeNodeEvents();
+        }
+        
+        function populateParentDepartmentSelect(departments) {
+            const select = document.getElementById('parent-department');
+            if (select) {
+                select.innerHTML = '<option value="0">无（顶级部门）</option>';
+                
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.department_id;
+                    option.textContent = dept.department_name;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        function saveDepartment() {
+            const id = document.getElementById('department-id').value;
+            const name = document.getElementById('department-name').value;
+            const parentId = document.getElementById('parent-department').value;
+            const level = document.getElementById('department-level').value;
+            
+            // 确定是添加还是编辑
+            if (id) {
+                // 编辑功能 - 这里需要根据实际情况调用相应的API
+                alert('编辑功能待实现');
+            } else {
+                // 添加功能
+                // 确定是添加区域还是站点
+                if (level == 2) {
+                    // 添加区域 - 区域实际上是通过area_manager字段来管理的
+                    // 这里需要特殊处理
+                    alert('区域管理功能待实现');
+                } else if (level == 3) {
+                    // 添加站点
+                    // 获取区域信息
+                    const areaOption = document.querySelector(`#parent-department option[value="${parentId}"]`);
+                    const areaManager = areaOption ? areaOption.textContent : '';
+                    
+                    fetch('http://127.0.0.1:5000/api/stations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            station_name: name,
+                            area_manager: areaManager
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('站点添加成功');
+                            loadDepartments(); // 重新加载数据
+                            document.getElementById('department-modal').style.display = 'none';
+                        } else {
+                            alert('添加失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('API调用错误:', error);
+                        alert('添加失败: 网络错误');
+                    });
+                }
+            }
+        }
+        
+        function updateDepartmentDetails(departmentId) {
+            // 如果是总公司，显示默认信息
+            if (departmentId == 1) {
+                const data = {
+                    name: '杭州坤泽物流有限公司',
+                    type: '总部',
+                    managers: [],
+                    delivery_staff: []
+                };
+                updateDepartmentUI(data);
+                return;
+            }
+            
+            // 从API获取部门详细信息
+            fetch(`http://127.0.0.1:5000/api/departments/${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateDepartmentUI(data.data);
+                    } else {
+                        // 如果API调用失败，显示默认信息
+                        const defaultData = {
+                            name: '未知部门',
+                            type: '配送部门',
+                            managers: [],
+                            delivery_staff: []
+                        };
+                        updateDepartmentUI(defaultData);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                    // 显示默认信息
+                    const defaultData = {
+                        name: '未知部门',
+                        type: '配送部门',
+                        managers: [],
+                        delivery_staff: []
+                    };
+                    updateDepartmentUI(defaultData);
+                });
+        }
+        
+        // 全局变量，存储当前选中的部门ID和管理人员数据
+        let currentDepartmentId = null;
+        let currentManagers = [];
+        
+        function updateDepartmentUI(data) {
+            // 更新部门信息
+            document.querySelector('.department-details-header h3').textContent = data.name;
+            document.querySelector('.department-type').textContent = data.type;
+            
+            // 存储当前管理人员数据
+            currentManagers = data.managers;
+            
+            // 更新管理人员表格
+            const managerTable = document.querySelector('.section .staff-table tbody');
+            managerTable.innerHTML = '';
+            if (data.managers.length === 0) {
+                managerTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">暂无管理人员</td></tr>';
+            } else {
+                data.managers.forEach((manager, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${manager.name}</td>
+                        <td>${manager.position}</td>
+                        <td>${manager.work_nature}</td>
+                        <td><span class="status-badge ${manager.status}">${manager.status === 'approved' ? '已审批' : '待审批'}</span></td>
+                        <td class="action-buttons">
+                            <a href="#" class="action-link" onclick="editStaff(${index})">编辑</a>
+                            <a href="#" class="action-link delete" onclick="deleteStaff(${index})">删除</a>
+                        </td>
+                    `;
+                    managerTable.appendChild(row);
+                });
+            }
+            
+            // 更新计数
+            document.querySelector('.section .section-count').textContent = `共计${data.managers.length}人`;
+        }
+        
+        function updateDepartmentDetails(departmentId) {
+            // 存储当前部门ID
+            currentDepartmentId = departmentId;
+            
+            // 如果是总公司，显示默认信息
+            if (departmentId == 1) {
+                const data = {
+                    name: '杭州坤泽物流有限公司',
+                    type: '总部',
+                    managers: [],
+                    delivery_staff: []
+                };
+                updateDepartmentUI(data);
+                return;
+            }
+            
+            // 从API获取部门详细信息
+            fetch(`http://127.0.0.1:5000/api/departments/${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateDepartmentUI(data.data);
+                    } else {
+                        // 如果API调用失败，显示默认信息
+                        const defaultData = {
+                            name: '未知部门',
+                            type: '配送部门',
+                            managers: [],
+                            delivery_staff: []
+                        };
+                        updateDepartmentUI(defaultData);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                    // 显示默认信息
+                    const defaultData = {
+                        name: '未知部门',
+                        type: '配送部门',
+                        managers: [],
+                        delivery_staff: []
+                    };
+                    updateDepartmentUI(defaultData);
+                });
+        }
+        
+        // 绑定部门操作按钮事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 编辑按钮事件
+            document.querySelector('.department-actions .btn-secondary').addEventListener('click', function() {
+                editDepartment(currentDepartmentId);
+            });
+            
+            // 删除按钮事件
+            document.querySelector('.department-actions .btn-danger').addEventListener('click', function() {
+                deleteDepartment(currentDepartmentId);
+            });
+            
+            // 添加按钮事件
+            document.querySelector('.department-actions .btn:not(.btn-secondary):not(.btn-danger)').addEventListener('click', function() {
+                addStaff();
+            });
+        });
+        
+        function editDepartment(departmentId) {
+            // 编辑部门/站点
+            if (!departmentId || departmentId == 1) {
+                alert('无法编辑总公司');
+                return;
+            }
+            
+            // 这里可以实现编辑部门的模态框
+            alert('编辑部门功能待实现');
+        }
+        
+        function deleteDepartment(departmentId) {
+            // 删除部门/站点
+            if (!departmentId || departmentId == 1) {
+                alert('无法删除总公司');
+                return;
+            }
+            
+            if (confirm('确定要删除这个部门/站点吗？')) {
+                // 这里需要根据实际情况调用相应的API
+                alert('删除部门功能待实现');
+            }
+        }
+        
+        function addStaff() {
+            // 添加管理人员
+            if (!currentDepartmentId || currentDepartmentId == 1) {
+                alert('请先选择一个站点');
+                return;
+            }
+            
+            // 获取当前部门名称
+            const departmentName = document.querySelector('.department-details-header h3').textContent;
+            
+            // 这里可以实现添加管理人员的模态框
+            const name = prompt('请输入管理人员姓名:');
+            const position = prompt('请输入职位:');
+            
+            if (name && position) {
+                // 调用API添加管理人员
+                fetch('http://127.0.0.1:5000/api/management-staff', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        area_manager: '王文强（一区）', // 这里需要根据实际情况获取区域经理
+                        team: departmentName,
+                        name: name,
+                        position: position
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('管理人员添加成功');
+                        updateDepartmentDetails(currentDepartmentId); // 重新加载数据
+                    } else {
+                        alert('添加失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                    alert('添加失败: 网络错误');
+                });
+            }
+        }
+        
+        function editStaff(staffIndex) {
+            // 编辑管理人员
+            if (!currentDepartmentId || currentDepartmentId == 1) {
+                alert('请先选择一个站点');
+                return;
+            }
+            
+            const manager = currentManagers[staffIndex];
+            if (!manager) {
+                alert('管理人员不存在');
+                return;
+            }
+            
+            // 这里可以实现编辑管理人员的模态框
+            const name = prompt('请输入管理人员姓名:', manager.name);
+            const position = prompt('请输入职位:', manager.position);
+            
+            if (name && position) {
+                // 调用API更新管理人员
+                fetch(`http://127.0.0.1:5000/api/management-staff/${manager.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        area_manager: '王文强（一区）', // 这里需要根据实际情况获取区域经理
+                        team: document.querySelector('.department-details-header h3').textContent,
+                        name: name,
+                        position: position
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('管理人员更新成功');
+                        updateDepartmentDetails(currentDepartmentId); // 重新加载数据
+                    } else {
+                        alert('更新失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                    alert('更新失败: 网络错误');
+                });
+            }
+        }
+        
+        function deleteStaff(staffIndex) {
+            // 删除管理人员
+            if (!currentDepartmentId || currentDepartmentId == 1) {
+                alert('请先选择一个站点');
+                return;
+            }
+            
+            const manager = currentManagers[staffIndex];
+            if (!manager) {
+                alert('管理人员不存在');
+                return;
+            }
+            
+            if (confirm('确定要删除这个管理人员吗？')) {
+                // 调用API删除管理人员
+                fetch(`http://127.0.0.1:5000/api/management-staff/${manager.id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('管理人员删除成功');
+                        updateDepartmentDetails(currentDepartmentId); // 重新加载数据
+                    } else {
+                        alert('删除失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('API调用错误:', error);
+                    alert('删除失败: 网络错误');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
