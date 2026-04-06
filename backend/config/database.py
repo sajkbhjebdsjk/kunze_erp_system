@@ -638,6 +638,74 @@ def init_database():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统操作日志表'
         ''')
 
+        # ========================================
+        # 初始化默认管理员账号（如果不存在）
+        # ========================================
+        try:
+            # 检查是否已有用户
+            cursor.execute('SELECT COUNT(*) as cnt FROM users')
+            user_count = cursor.fetchone()['cnt']
+            
+            if user_count == 0:
+                print('正在创建默认管理员账号...')
+                
+                # 创建默认角色
+                cursor.executescript('''
+                    INSERT IGNORE INTO roles (id, name, description, created_at) VALUES
+                    (1, '超级管理员', '拥有系统所有权限', NOW()),
+                    (2, '管理员', '拥有大部分管理权限', NOW()),
+                    (3, '普通用户', '基本使用权限', NOW());
+                ''')
+                
+                # 创建默认部门、岗位、城市
+                cursor.executescript('''
+                    INSERT IGNORE INTO departments (department_id, department_name) VALUES
+                    (1, '总部'), (2, '运营部'), (3, '技术部');
+                    
+                    INSERT IGNORE INTO positions (position_id, position_name, department_id) VALUES
+                    (1, '系统管理员', 1), (2, '运营经理', 2), (3, '技术员', 3);
+                    
+                    INSERT IGNORE INTO cities (city_code, city_name) VALUES
+                    ('hangzhou', '杭州'), ('wuhan', '武汉'), ('shenyang', '沈阳'),
+                    ('jinhua', '金华'), ('shaoxing', '绍兴');
+                ''')
+                
+                # 创建默认管理员用户
+                from utils.password_utils import hash_password
+                password_hash = hash_password('admin123')
+                
+                cursor.execute('''
+                    INSERT INTO users (
+                        username, password, name, phone, email,
+                        department_id, position_id, city_code,
+                        is_active, role_ids, created_at
+                    ) VALUES (
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s,
+                        1, '[1]', NOW()
+                    )
+                ''', (
+                    'admin',
+                    password_hash,
+                    '系统管理员',
+                    '13800138000',
+                    'admin@kunze.com',
+                    1, 1, 'hangzhou'
+                ))
+                
+                # 为管理员分配角色
+                cursor.execute('''
+                    INSERT IGNORE INTO user_roles (user_id, role_id) VALUES (1, 1)
+                ''')
+                
+                print('✓ 默认管理员账号创建成功！')
+                print('  用户名: admin')
+                print('  密码: admin123')
+                print('  ⚠️  请登录后立即修改密码！')
+            
+        except Exception as role_error:
+            print(f'⚠️ 创建默认用户时出错（不影响表结构）: {role_error}')
+
         conn.commit()
         print('数据库初始化成功')
     except Exception as e:
