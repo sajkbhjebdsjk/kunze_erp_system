@@ -539,9 +539,10 @@ def batch_create_riders():
                 missing_fields.append('岗位状态')
             
             if missing_fields:
+                missing_fields_str = ', '.join(missing_fields)
                 return jsonify({
                     'success': False,
-                    'error': f'第 {index + 2} 行数据缺少必填字段: {', '.join(missing_fields)}'
+                    'error': f'第 {index + 2} 行数据缺少必填字段: {missing_fields_str}'
                 }), 400
             
             # 从身份证号提取出生日期
