@@ -95,17 +95,35 @@ def frontend_files(filename):
     root_dir = os.path.dirname(os.path.dirname(__file__))
     root_file = os.path.join(root_dir, filename)
     if os.path.isfile(root_file) and (filename.endswith('.html') or filename.endswith('.js') or filename.endswith('.css')):
-        resp = send_from_directory(root_dir, filename, mimetype=_get_mimetype(filename))
-        resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
-        return resp
+        from flask import Response
+        with open(root_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        response = Response(
+            content,
+            mimetype=_get_mimetype(filename),
+            headers={
+                'Content-Type': _get_mimetype(filename),
+                'Cache-Control': 'no-cache, must-revalidate'
+            }
+        )
+        return response
 
     # 再尝试从 frontend 目录查找
     frontend_dir = os.path.join(root_dir, 'frontend')
     frontend_file = os.path.join(frontend_dir, filename)
     if os.path.isfile(frontend_file):
-        resp = send_from_directory(frontend_dir, filename, mimetype=_get_mimetype(filename))
-        resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
-        return resp
+        from flask import Response
+        with open(frontend_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        response = Response(
+            content,
+            mimetype=_get_mimetype(filename),
+            headers={
+                'Content-Type': _get_mimetype(filename),
+                'Cache-Control': 'no-cache, must-revalidate'
+            }
+        )
+        return response
 
     # 如果都找不到，返回404
     from flask import abort
@@ -114,12 +132,24 @@ def frontend_files(filename):
 # 根路径重定向到登录页面
 @app.route('/')
 def index():
-    resp = send_from_directory(
-        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend'),
-        'login.html',
-        mimetype='text/html; charset=utf-8'
+    from flask import Response
+    login_html_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'login.html')
+    
+    with open(login_html_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    response = Response(
+        html_content,
+        status=200,
+        mimetype='text/html',
+        headers={
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
     )
-    return resp
+    return response
 
 # 处理favicon.ico请求（消除404错误）
 @app.route('/favicon.ico')
