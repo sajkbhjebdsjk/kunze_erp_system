@@ -584,3 +584,57 @@ CREATE TABLE IF NOT EXISTS fixed_costs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- =====================================================
+-- 初始化默认数据：角色、部门、岗位、管理员账号
+-- =====================================================
+
+-- 插入默认角色
+INSERT IGNORE INTO roles (id, name, description) VALUES
+(1, '超级管理员', '拥有系统所有权限'),
+(2, '管理员', '拥有大部分管理权限'),
+(3, '普通用户', '基本使用权限');
+
+-- 插入默认部门
+INSERT IGNORE INTO departments (department_id, department_name) VALUES
+('1', '总部'),
+('2', '运营部'),
+('3', '技术部');
+
+-- 插入默认岗位
+INSERT IGNORE INTO positions (position_id, position_name, department_id) VALUES
+('1', '系统管理员', '1'),
+('2', '运营经理', '2'),
+('3', '技术员', '3');
+
+-- =====================================================
+-- 创建默认管理员账号
+-- 用户名: admin
+-- 密码: admin123 (已使用 Werkzeug 哈希)
+-- =====================================================
+INSERT IGNORE INTO users (
+    username,
+    password,
+    city_code,
+    department_id,
+    position_id,
+    name
+) VALUES (
+    'admin',
+    'scrypt:32768:8:1$PTTALs1rDIQ3ZTpL$4c7727ac57b9979b7ca76488d5643ace0979c2205cf2337bcc10ac3622bb48134fbbe2a282227ea14dcc5f45b905abbbff04af01f0f71bea7203ba4130cfe1b1',
+    'hangzhou',
+    '1',
+    '1',
+    '系统管理员'
+);
+
+-- 为管理员分配超级管理员角色
+INSERT IGNORE INTO user_roles (user_id, role_id) VALUES (1, 1);
+
+-- =====================================================
+-- 数据库初始化完成！
+-- 默认登录凭据:
+--   用户名: admin
+--   密码:   admin123
+-- ⚠️ 请登录后立即修改密码！
+-- =====================================================
