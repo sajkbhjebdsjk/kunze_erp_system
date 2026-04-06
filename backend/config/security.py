@@ -120,6 +120,15 @@ def setup_security_headers(app):
     """设置安全响应头中间件"""
     @app.after_request
     def add_security_headers(response):
+        # 关键修复：确保 HTML 响应有正确的 Content-Type
+        if not response.headers.get('Content-Type') or 'text/html' not in response.headers.get('Content-Type', ''):
+            # 检查是否是 HTML 内容（通过 URL 或内容判断）
+            from flask import request
+            if (request.path.endswith('.html') or 
+                request.path == '/' or 
+                (response.data and b'<html' in response.data[:200].lower())):
+                response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        
         for header, value in SecurityConfig.SECURITY_HEADERS.items():
             response.headers[header] = value
         return response
