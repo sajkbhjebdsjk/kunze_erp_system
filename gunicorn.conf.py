@@ -57,7 +57,7 @@ pidfile = None              # 容器环境不需要 pidfile
 # 权限设置
 user = None
 group = None
-umask = '0027'
+umask = 0o027              # 八进制整数格式（文件权限掩码）
 
 # 优雅关闭超时
 graceful_timeout = 30
