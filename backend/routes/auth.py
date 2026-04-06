@@ -13,39 +13,49 @@ auth_bp = Blueprint('auth', __name__)
 @rate_limit
 def login():
     """用户登录（增强版 - 集成JWT和密码策略）"""
+    import traceback
     try:
         data = request.get_json()
         username = data.get('username', '').strip()
         password = data.get('password', '')
         ip_address = request.remote_addr
-        
+
+        # 打印调试信息
+        print(f'[LOGIN-DEBUG] 尝试登录: username={username}, ip={ip_address}')
+
         # 输入验证
         if not username or not password:
+            print('[LOGIN-ERROR] 用户名或密码为空')
             log_user_action(0, username, '登录失败', '原因: 用户名或密码为空', ip_address)
             return jsonify({
                 'success': False,
                 'message': '用户名和密码不能为空'
             }), 400
-        
+
         # 用户名长度验证
         if len(username) < 3 or len(username) > 50:
+            print(f'[LOGIN-ERROR] 用户名长度无效: {len(username)}')
             return jsonify({
                 'success': False,
                 'message': '用户名长度必须在3-50个字符之间'
             }), 400
-        
+
         # 密码长度基本验证（不检查强度，只检查是否为空）
         if len(password) < 1:
+            print('[LOGIN-ERROR] 密码为空')
             return jsonify({
                 'success': False,
                 'message': '密码不能为空'
             }), 400
-        
+
         # 验证用户
+        print(f'[LOGIN-DEBUG] 调用 User.verify_user({username}, ****)')
         user, message = User.verify_user(username, password)
+        print(f'[LOGIN-DEBUG] verify_user 结果: user={user is not None}, message={message}')
+
         if not user:
             log_user_action(0, username, '登录失败', f'原因: {message}', ip_address)
-            
+
             # 安全提示：不要明确告知是用户名错误还是密码错误
             return jsonify({
                 'success': False,
@@ -108,8 +118,14 @@ def login():
         })
         
         return response
-    
+
     except Exception as e:
+        # 打印完整的错误堆栈
+        print(f'[LOGIN-ERROR] 登录时发生异常: {str(e)}')
+        print(f'[LOGIN-ERROR] 异常类型: {type(e).__name__}')
+        print(f'[LOGIN-ERROR] 完整堆栈:\n{traceback.format_exc()}')
+        import logging
+        logging.error(f'登录失败: {str(e)}', exc_info=True)
         return jsonify({
             'success': False,
             'message': f'服务器内部错误: {str(e)}'

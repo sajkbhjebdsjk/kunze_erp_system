@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS positions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     position_id VARCHAR(50) NOT NULL UNIQUE,
     position_name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    department_id VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
 -- 创建角色表
@@ -436,33 +438,32 @@ CREATE TABLE IF NOT EXISTS rider_attendance (
 CREATE TABLE IF NOT EXISTS rider_contracts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     contract_no VARCHAR(50) NOT NULL UNIQUE COMMENT '合同编号',
-    rider_id VARCHAR(50) COMMENT '骑手风神ID（关联riders表）',
+    rider_id VARCHAR(50) NULL COMMENT '骑手风神ID（关联riders表）',
     party_b_name VARCHAR(100) NOT NULL COMMENT '乙方（承揽人）姓名',
-    id_card VARCHAR(18) NOT NULL COMMENT '身份证号',
-    phone VARCHAR(20) NOT NULL COMMENT '手机号',
+    id_card VARCHAR(18) NOT NULL UNIQUE COMMENT '身份证号',
+    phone VARCHAR(20) NOT NULL UNIQUE COMMENT '手机号',
     address VARCHAR(255) NOT NULL COMMENT '送达地址',
-    emergency_name VARCHAR(50) COMMENT '紧急联系人姓名',
-    emergency_phone VARCHAR(20) COMMENT '紧急联系人电话',
-    emergency_address VARCHAR(255) COMMENT '紧急联系人地址',
-    signature_image TEXT COMMENT '签名图片（base64）',
-    signature_path VARCHAR(255) COMMENT '签名图片路径',
-    template_id INT COMMENT '合同模板ID（关联contracts表）',
-    pdf_path VARCHAR(255) COMMENT '生成的PDF文件路径',
-    pdf_filename VARCHAR(255) COMMENT 'PDF文件名',
-    sign_time DATETIME COMMENT '签署时间',
+    emergency_name VARCHAR(50) NULL COMMENT '紧急联系人姓名',
+    emergency_phone VARCHAR(20) NULL COMMENT '紧急联系人电话',
+    emergency_address VARCHAR(255) NULL COMMENT '紧急联系人地址',
+    signature_image TEXT NULL COMMENT '签名图片（base64）',
+    signature_path VARCHAR(255) NULL COMMENT '签名图片路径',
+    template_id INT NULL COMMENT '合同模板ID（关联contracts表）',
+    pdf_path VARCHAR(255) NULL COMMENT '生成的PDF文件路径',
+    pdf_filename VARCHAR(255) NULL COMMENT 'PDF文件名',
+    sign_time DATETIME NULL COMMENT '签署时间',
     status TINYINT DEFAULT 0 COMMENT '状态：0-待签署，1-已签署，2-已失效',
-    
-    -- 一次性查看相关字段
-    view_token VARCHAR(100) COMMENT '一次性查看令牌',
+    view_token VARCHAR(100) NULL COMMENT '一次性查看令牌',
     view_count INT DEFAULT 0 COMMENT '已查看次数',
     view_max_allowed INT DEFAULT 1 COMMENT '最大允许查看次数',
-    last_view_time DATETIME COMMENT '最后查看时间',
-    view_expires_at DATETIME COMMENT '查看链接过期时间',
-    ip_address VARCHAR(45) COMMENT '签署/查看时的IP地址',
-    user_agent VARCHAR(500) COMMENT '用户浏览器信息',
-    
+    last_view_time DATETIME NULL COMMENT '最后查看时间',
+    view_expires_at DATETIME NULL COMMENT '查看链接过期时间',
+    ip_address VARCHAR(45) NULL COMMENT '签署/查看时的IP地址',
+    user_agent VARCHAR(500) NULL COMMENT '用户浏览器信息',
+    is_deleted TINYINT DEFAULT 0 COMMENT '是否删除：0-否，1-是',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
     INDEX idx_rider_id (rider_id),
     INDEX idx_id_card (id_card),
     INDEX idx_contract_no (contract_no),

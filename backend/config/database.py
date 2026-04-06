@@ -63,7 +63,9 @@ def init_database():
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 position_id VARCHAR(50) NOT NULL UNIQUE,
                 position_name VARCHAR(100) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                department_id VARCHAR(50) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (department_id) REFERENCES departments(department_id)
             )
         ''')
 
