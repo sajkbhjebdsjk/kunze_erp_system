@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 只有杭州城市需要加载站点数据
         if (city === 'hangzhou') {
             // 从API获取站点数据
-            fetch('window.API_BASE_URL/api/stations?city_code=hangzhou')
+            fetch(`${window.API_BASE_URL}/api/stations?city_code=hangzhou`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取骑手数据
         fetch(url)
@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 查看合同
     function viewContract(riderId) {
         // 从API获取骑手的合同信息
-        fetch(`window.API_BASE_URL/api/riders/${riderId}/contract`) 
+        fetch(`${window.API_BASE_URL}/api/riders/${riderId}/contract`) 
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -693,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 编辑骑手
     function editRider(riderId) {
         // 从API获取骑手详情
-        fetch(`window.API_BASE_URL/api/riders/${riderId}`)
+        fetch(`${window.API_BASE_URL}/api/riders/${riderId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 查看骑手详情
     function viewRider(riderId) {
         // 从API获取骑手详情
-        fetch(`window.API_BASE_URL/api/riders/${riderId}`)
+        fetch(`${window.API_BASE_URL}/api/riders/${riderId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -819,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // 发送更新请求
-            fetch(`window.API_BASE_URL/api/riders/${rider.rider_id}`, {
+            fetch(`${window.API_BASE_URL}/api/riders/${rider.rider_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1029,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 导出骑手数据
     function exportRiderData() {
         // 从API获取骑手数据
-        fetch('window.API_BASE_URL/api/riders')
+        fetch('${window.API_BASE_URL}/api/riders')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -1208,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/overview${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/overview${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取运力总览数据
         fetch(url)
@@ -1496,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('city', selectedCity);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/overview${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/overview${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取运力总览数据
         fetch(url)
@@ -1637,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 上传骑手数据
     function uploadRiders(riders) {
         // 上传数据到服务器
-        fetch('window.API_BASE_URL/api/riders/batch', {
+        fetch('${window.API_BASE_URL}/api/riders/batch', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1667,7 +1667,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 获取当前选择的城市
         const selectedCity = localStorage.getItem('selectedCity') || 'all';
         
-        fetch(`window.API_BASE_URL/api/riders/stats?city=${selectedCity}`)
+        fetch(`${window.API_BASE_URL}/api/riders/stats?city=${selectedCity}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -1775,7 +1775,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.end_date) queryParams.append('end_date', filters.end_date);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/entry-exit-summary${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/entry-exit-summary${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取入离职汇总数据
         fetch(url)
@@ -1866,7 +1866,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取骑手数据
         fetch(url)
@@ -1966,7 +1966,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取离职记录数据
         fetch(url)
@@ -2195,7 +2195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.date) queryParams.append('date', filters.date);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/third-party-summary${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/third-party-summary${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取三方表数据
         fetch(url)
@@ -2260,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('city_code', city_code);
         queryParams.append('dimension', dimension);
         
-        const url = `window.API_BASE_URL/api/riders/entry-exit-trend?${queryParams.toString()}`;
+        const url = `${window.API_BASE_URL}/api/riders/entry-exit-trend?${queryParams.toString()}`;
         
         // 从API获取趋势数据
         fetch(url)
@@ -2401,7 +2401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const queryParams = new URLSearchParams();
         queryParams.append('city_code', city_code);
         
-        const url = `window.API_BASE_URL/api/riders/third-party-analysis?${queryParams.toString()}`;
+        const url = `${window.API_BASE_URL}/api/riders/third-party-analysis?${queryParams.toString()}`;
         
         // 从API获取三方分析数据
         fetch(url)
@@ -2535,7 +2535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.end_date) queryParams.append('end_date', filters.end_date);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/entry-exit-summary${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/entry-exit-summary${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取数据
         fetch(url)
@@ -2639,7 +2639,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取骑手数据
         fetch(url)
@@ -2774,7 +2774,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('work_nature', '兼职');
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取数据
         fetch(url)
@@ -2909,7 +2909,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取骑手数据
         fetch(url)
@@ -3149,7 +3149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取离职记录数据
         fetch(url)
@@ -3393,7 +3393,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('city', selectedCity);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/exit-records${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取数据
         fetch(url)
@@ -3475,7 +3475,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取待离职统计数据
         fetch(url)
@@ -3577,7 +3577,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('city', selectedCity);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取待离职统计数据
         fetch(url)
@@ -3871,7 +3871,7 @@ document.addEventListener('DOMContentLoaded', function() {
         queryParams.append('city', selectedCity);
         
         const queryString = queryParams.toString();
-        const url = `window.API_BASE_URL/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
+        const url = `${window.API_BASE_URL}/api/riders/pending-exit${queryString ? `?${queryString}` : ''}`;
         
         // 从API获取数据
         fetch(url)
