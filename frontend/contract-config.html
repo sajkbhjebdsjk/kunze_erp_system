@@ -883,36 +883,6 @@
             let currentRiderContractPage = 1;
             const riderContractPerPage = 10;
 
-            // 切换Tab
-            window.switchTab = function(tab) {
-                const tabTemplate = document.getElementById('tabTemplate');
-                const tabRiderContract = document.getElementById('tabRiderContract');
-                const templateSection = document.getElementById('templateSection');
-                const riderContractSection = document.getElementById('riderContractSection');
-
-                if (tab === 'template') {
-                    tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
-                    tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
-                    templateSection.classList.remove('hidden');
-                    riderContractSection.classList.add('hidden');
-                } else {
-                    tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
-                    tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
-                    templateSection.classList.add('hidden');
-                    riderContractSection.classList.remove('hidden');
-                    
-                    // 加载骑手合同数据
-                    loadRiderContracts();
-                    loadRiderContractStats();
-                    loadContractTemplates(); // 加载合同模板到选择器
-                }
-                
-                // 延迟执行图标渲染，避免触发点击事件
-                setTimeout(() => {
-                    lucide.createIcons();
-                }, 100);
-            };
-
             // 加载合同模板列表（用于选择器）
             function loadContractTemplates() {
                 fetch(`${window.API_BASE_URL}/api/contracts`)
@@ -1079,7 +1049,7 @@
                                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>详情
                                         </button>
                                         ${hasPdf ? `
-                                            <a href=`${window.API_BASE_URL}/api/rider-contracts/download/${contract.id}`" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium ml-2 flex items-center gap-1">
+                                            <a href="${window.API_BASE_URL}/api/rider-contracts/download/${contract.id}" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium ml-2 flex items-center gap-1">
                                                 <i data-lucide="download" class="w-3.5 h-3.5"></i>下载PDF
                                             </a>
                                         ` : '<span class="text-gray-400 text-xs ml-2">无PDF</span>'}
@@ -1168,11 +1138,11 @@
                                         
                                         <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
                                             ${hasPdf ? `
-                                                <a href=`${window.API_BASE_URL}/api/rider-contracts/download/${contractId}`" target="_blank"
+                                                <a href="${window.API_BASE_URL}/api/rider-contracts/download/${contractId}" target="_blank"
                                                    class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
                                                     📥 下载PDF
                                                 </a>
-                                                <button onclick="window.open(`${window.API_BASE_URL}/api/rider-contracts/admin-view/`,'_blank')"
+                                                <button onclick="window.open('${window.API_BASE_URL}/api/rider-contracts/admin-view/','_blank')"
                                                         class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
                                                         👁️ 预览PDF
                                                 </button>
