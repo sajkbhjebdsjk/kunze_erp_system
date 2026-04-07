@@ -79,7 +79,7 @@ class SecurityConfig:
         # 注意：每个指令必须以 '; ' 分隔
         'Content-Security-Policy': (
             "default-src 'self'; "
-            "connect-src 'self' " + _dev_connect + "; "
+            "connect-src 'self' " + _dev_connect + "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://cdn.tailwindcss.com; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "

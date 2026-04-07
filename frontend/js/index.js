@@ -307,21 +307,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 清空现有数据
         const performanceGrid = document.querySelector('.performance-grid');
         if (performanceGrid) {
-            performanceGrid.innerHTML = `
-                <div class="performance-card">
-                    <h4>加载中...</h4>
-                    <p>数据正在获取</p>
-                </div>
-            `;
+            performanceGrid.innerHTML = '';
         }
-        
+
         const regionTable = document.getElementById('region-table') ? document.getElementById('region-table').querySelector('tbody') : null;
         if (regionTable) {
-            regionTable.innerHTML = `
-                <tr>
-                    <td colspan="15">数据正在获取</td>
-                </tr>
-            `;
+            regionTable.innerHTML = '';
         }
         
         // 加载站点数据到部门下拉框

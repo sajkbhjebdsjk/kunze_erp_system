@@ -10,7 +10,6 @@ DB_CONFIG = {
     'password': os.environ.get('DB_PASSWORD', '123456'),
     'database': os.environ.get('DB_NAME', 'erp_system'),
     'charset': 'utf8mb4',
-    'collation': 'utf8mb4_unicode_ci',
     'connect_timeout': 10,
     'read_timeout': 30,
     'write_timeout': 30
