@@ -239,8 +239,8 @@ def create_flow():
             flow_type = data.get('flow_type')
             flow_name = data.get('flow_name')
             description = data.get('description', '')
-            steps = data.get('steps')
-            fields = data.get('fields', [])
+            steps = data.get('steps') or []
+            fields = data.get('fields') or []
             
             if not flow_type or not flow_name or not steps:
                 return jsonify({'error': '缺少必要参数'}), 400
@@ -280,7 +280,7 @@ def create_flow():
                 field_name = field.get('name')
                 field_type = field.get('type')
                 is_required = field.get('is_required', False)
-                options = field.get('options', [])
+                options = field.get('options') or []
                 
                 if field_name and field_type:
                     # 将字段关联到第一个步骤
