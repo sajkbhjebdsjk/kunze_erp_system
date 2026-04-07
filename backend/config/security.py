@@ -78,15 +78,11 @@ class SecurityConfig:
             "default-src 'self'; "
             "connect-src 'self' "
             + ("http://localhost:5000 http://127.0.0.1:5000 " if _flask_env == 'development' else "")
-            + "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-            "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
-            "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
-            "style-src 'self' 'unsafe-inline' "
-            "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
-            "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
-            "img-src 'self' data: blob: https:; "
-            "frame-ancestors 'none'"
+            + "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            + "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
+            + "img-src 'self' data: blob: https:; "
+            + "frame-ancestors 'none'"
         ),
         
         # Referrer策略 - 控制Referer头信息泄露
