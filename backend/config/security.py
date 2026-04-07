@@ -64,6 +64,9 @@ class SecurityConfig:
     CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'X-Requested-With']
 
     # ==================== 安全响应头 ====================
+    # CSP 辅助变量（必须在字典外定义）
+    _dev_connect = "http://localhost:5000 http://127.0.0.1:5000 " if _flask_env == 'development' else ""
+    
     SECURITY_HEADERS = {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
@@ -73,16 +76,15 @@ class SecurityConfig:
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
         
         # Content Security Policy - 防止XSS和数据注入攻击
-        # 生产环境允许连接到 Railway 域名，开发环境允许 localhost
+        # 注意：每个指令必须以 '; ' 分隔
         'Content-Security-Policy': (
             "default-src 'self'; "
-            "connect-src 'self' "
-            + ("http://localhost:5000 http://127.0.0.1:5000 " if _flask_env == 'development' else "")
-            + "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
-            + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
-            + "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
-            + "img-src 'self' data: blob: https:; "
-            + "frame-ancestors 'none'"
+            "connect-src 'self' " + _dev_connect + "; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
+            "img-src 'self' data: blob: https:; "
+            "frame-ancestors 'none'"
         ),
         
         # Referrer策略 - 控制Referer头信息泄露
