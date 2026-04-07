@@ -290,7 +290,7 @@
 
                 if (isViewMode && flowId) {
                     // 查看模式：获取已签署的合同
-                    const signedUrl = `window.API_BASE_URL/api/contracts/signed/${flowId}`;
+                    const signedUrl = `${window.API_BASE_URL}/api/contracts/signed/${flowId}`;
                     console.log('Signed URL:', signedUrl);
                     fetch(signedUrl)
                         .then(response => {
@@ -324,7 +324,7 @@
                         });
                 } else {
                     // 签署模式：获取合同模板
-                    const contractUrl = `window.API_BASE_URL/api/contracts/${contractId}`;
+                    const contractUrl = `${window.API_BASE_URL}/api/contracts/${contractId}`;
                     console.log('Contract URL:', contractUrl);
                     fetch(contractUrl)
                         .then(response => {
@@ -395,7 +395,7 @@
                 showToast('正在处理，请稍候...');
 
                 // 提交签署数据
-                const apiUrl = `${window.API_BASE_URL}$1`;
+                const apiUrl = `${window.API_BASE_URL}/api/contracts/sign`;
                 console.log('API URL:', apiUrl);
                 
                 // 限制签名数据大小

@@ -632,7 +632,7 @@
         });
         
         function loadPermissions() {
-            fetch(`${window.API_BASE_URL}$1`)
+            fetch(`${window.API_BASE_URL}/api/permissions`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

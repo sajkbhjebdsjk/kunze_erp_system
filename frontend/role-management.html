@@ -710,7 +710,7 @@
         });
         
         function loadRoles() {
-            fetch(`${window.API_BASE_URL}$1`)
+            fetch(`${window.API_BASE_URL}/api/roles`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -728,7 +728,7 @@
         }
         
         function loadPermissionsCount() {
-            fetch(`${window.API_BASE_URL}$1`)
+            fetch(`${window.API_BASE_URL}/api/permissions`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -743,7 +743,7 @@
             
             // 先获取所有角色的权限数据
             const permissionPromises = roles.map(role => 
-                fetch(`window.API_BASE_URL/api/roles/${role.id}/permissions`)
+                fetch(`${window.API_BASE_URL}/api/roles/${role.id}/permissions`)
                     .then(response => response.json())
                     .then(rolePermsData => ({
                         role: role,
@@ -806,7 +806,7 @@
         }
         
         function editRole(id) {
-            fetch(`${window.API_BASE_URL}$1`)
+            fetch(`${window.API_BASE_URL}/api/roles`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -824,7 +824,7 @@
         
         function deleteRole(id) {
             if (confirm('确定要删除这个角色吗？')) {
-                fetch(`window.API_BASE_URL/api/roles/${id}`, {
+                fetch(`${window.API_BASE_URL}/api/roles/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -848,12 +848,12 @@
             document.getElementById('permissions-role-id').value = roleId;
             
             // 加载所有权限
-            fetch(`${window.API_BASE_URL}$1`)
+            fetch(`${window.API_BASE_URL}/api/permissions`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // 加载角色已有权限
-                        fetch(`window.API_BASE_URL/api/roles/${roleId}/permissions`)
+                        fetch(`${window.API_BASE_URL}/api/roles/${roleId}/permissions`)
                             .then(response => response.json())
                             .then(rolePermsData => {
                                 if (rolePermsData.success) {
@@ -927,7 +927,7 @@
             const name = document.getElementById('role-name').value;
             const description = document.getElementById('role-description').value;
             
-            fetch(`${window.API_BASE_URL}$1`, {
+            fetch(`${window.API_BASE_URL}/api/roles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -957,7 +957,7 @@
                 .filter(cb => cb.checked)
                 .map(cb => parseInt(cb.value));
             
-            fetch(`window.API_BASE_URL/api/roles/${roleId}/permissions/batch`, {
+            fetch(`${window.API_BASE_URL}/api/roles/${roleId}/permissions/batch`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

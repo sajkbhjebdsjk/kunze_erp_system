@@ -144,7 +144,7 @@
             }
             
             // 发送审批请求
-            fetch(`window.API_BASE_URL/api/flows/${flowId}/approve`, {
+            fetch(`${window.API_BASE_URL}/api/flows/${flowId}/approve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -186,7 +186,7 @@
             
             if (confirm('确定要撤销此流程吗？')) {
                 // 发送撤销请求
-                fetch(`window.API_BASE_URL/api/flows/${flowId}/cancel`, {
+                fetch(`${window.API_BASE_URL}/api/flows/${flowId}/cancel`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -235,7 +235,7 @@
             }
             
             // 发送评论请求
-            fetch(`window.API_BASE_URL/api/flows/${flowId}/comment`, {
+            fetch(`${window.API_BASE_URL}/api/flows/${flowId}/comment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -276,7 +276,7 @@
             }
             
             // 发送请求获取评论
-            fetch(`window.API_BASE_URL/api/flows/${flowId}/comments`)
+            fetch(`${window.API_BASE_URL}/api/flows/${flowId}/comments`)
                 .then(response => response.json())
                 .then(data => {
                     const commentsContainer = document.getElementById(`comments-${flowId}`);
@@ -319,7 +319,7 @@
             hideUserList();
             
             // 发送请求获取用户列表
-            fetch(`window.API_BASE_URL/api/users?query=${encodeURIComponent(query)}`)
+            fetch(`${window.API_BASE_URL}/api/users?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.users && data.users.length > 0) {
@@ -371,7 +371,7 @@
             }
 
             // 调用后端API获取审批数据
-            fetch(`${window.API_BASE_URL}$1` + tab + '&user_id=' + user.id)
+            fetch(`${window.API_BASE_URL}/api/flows?tab=` + tab + '&user_id=' + user.id)
                 .then(response => response.json())
                 .then(data => {
                     const approvalList = document.getElementById('approval-list');
@@ -470,7 +470,7 @@
             });
             
             // 加载流程详情
-            fetch(`window.API_BASE_URL/api/flows/${flowId}/detail`)
+            fetch(`${window.API_BASE_URL}/api/flows/${flowId}/detail`)
                 .then(response => response.json())
                 .then(data => {
                     const content = document.getElementById('flow-detail-content');
@@ -682,7 +682,7 @@
             console.log('开始加载通知...');
             console.log('用户ID:', user.id);
             // 发送请求获取通知
-            fetch(`window.API_BASE_URL/api/notifications?user_id=${user.id}`)
+            fetch(`${window.API_BASE_URL}/api/notifications?user_id=${user.id}`)
                 .then(response => {
                     console.log('响应状态:', response.status);
                     return response.json();
@@ -765,7 +765,7 @@
             }
             
             // 发送请求标记通知为已读
-            fetch(`window.API_BASE_URL/api/notifications/${notificationId}/read?user_id=${user.id}`, {
+            fetch(`${window.API_BASE_URL}/api/notifications/${notificationId}/read?user_id=${user.id}`, {
                 method: 'POST'
             })
             .then(response => response.json())

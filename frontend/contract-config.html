@@ -642,7 +642,7 @@
                 const formData = new FormData();
                 formData.append('contract', file);
 
-                fetch(`${window.API_BASE_URL}$1`, {
+                fetch(`${window.API_BASE_URL}/api/contracts/upload`, {
                     method: 'POST',
                     body: formData
                 })
@@ -663,7 +663,7 @@
 
             // 加载合同列表
             function loadContracts() {
-                fetch(`${window.API_BASE_URL}$1`)
+                fetch(`${window.API_BASE_URL}/api/contracts`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -741,7 +741,7 @@
                     documentTitle.textContent = contract.name;
                     
                     // 从后端获取合同内容
-                    fetch(`window.API_BASE_URL/api/contracts/${contractId}`)
+                    fetch(`${window.API_BASE_URL}/api/contracts/${contractId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -766,7 +766,7 @@
             window.toggleContractStatus = function(contractId, currentStatus) {
                 const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
                 
-                fetch(`window.API_BASE_URL/api/contracts/${contractId}/status`, {
+                fetch(`${window.API_BASE_URL}/api/contracts/${contractId}/status`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -795,7 +795,7 @@
             // 删除合同
             window.deleteContract = function(contractId) {
                 if (confirm('确定要删除这个合同吗？')) {
-                    fetch(`window.API_BASE_URL/api/contracts/${contractId}`, {
+                    fetch(`${window.API_BASE_URL}/api/contracts/${contractId}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -819,7 +819,7 @@
             function saveContract() {
                 const content = contractEditor.innerHTML;
                 
-                fetch(`window.API_BASE_URL/api/contracts/${currentContractId}`, {
+                fetch(`${window.API_BASE_URL}/api/contracts/${currentContractId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -879,7 +879,7 @@
 
             // 加载合同模板列表（用于选择器）
             function loadContractTemplates() {
-                fetch(`${window.API_BASE_URL}$1`)
+                fetch(`${window.API_BASE_URL}/api/contracts`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.data) {
@@ -950,7 +950,7 @@
 
             // 加载骑手合同统计
             function loadRiderContractStats() {
-                fetch(`${window.API_BASE_URL}$1`)
+                fetch(`${window.API_BASE_URL}/api/rider-contracts/stats`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -980,7 +980,7 @@
             window.loadRiderContracts = function(page = 1) {
                 currentRiderContractPage = page;
                 
-                fetch(`window.API_BASE_URL/api/rider-contracts?page=${page}&per_page=${riderContractPerPage}`)
+                fetch(`${window.API_BASE_URL}/api/rider-contracts?page=${page}&per_page=${riderContractPerPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1087,7 +1087,7 @@
 
             // 查看骑手合同详情
             window.viewRiderContract = function(contractId) {
-                fetch(`window.API_BASE_URL/api/rider-contracts/${contractId}`)
+                fetch(`${window.API_BASE_URL}/api/rider-contracts/${contractId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1136,7 +1136,7 @@
                                                    class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
                                                     📥 下载PDF
                                                 </a>
-                                                <button onclick="window.open(`${window.API_BASE_URL}$1`,'_blank')"
+                                                <button onclick="window.open(`${window.API_BASE_URL}/api/rider-contracts/admin-view/`,'_blank')"
                                                         class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium text-sm transition-all shadow-md inline-flex items-center gap-2">
                                                         👁️ 预览PDF
                                                 </button>
@@ -1166,14 +1166,14 @@
 
             // 下载合同PDF
             window.downloadContract = function(contractNo) {
-                window.open(`window.API_BASE_URL/api/rider-contracts/download/${contractNo}`, '_blank');
+                window.open(`${window.API_BASE_URL}/api/rider-contracts/download/${contractNo}`, '_blank');
             };
 
             // 重置查看次数
             window.resetViewCount = function(contractId, modalId) {
                 if (!confirm('确定要重置该合同的查看次数吗？\n\n重置后骑手可以再次通过链接查看PDF。')) return;
                 
-                fetch(`window.API_BASE_URL/api/rider-contracts/reset-view/${contractId}`, {
+                fetch(`${window.API_BASE_URL}/api/rider-contracts/reset-view/${contractId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 })
