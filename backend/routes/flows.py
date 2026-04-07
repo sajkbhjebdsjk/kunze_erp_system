@@ -231,7 +231,7 @@ def create_flow():
             data = request.form.to_dict()
             
         # 处理文件上传
-        files = request.files
+        files = request.files or {}
         
         # 检查是否是流程架构配置
         if 'flow_type' in data and 'steps' in data:
@@ -378,7 +378,7 @@ def create_flow():
                 os.makedirs(upload_dir)
             
             # 处理文本字段
-            for key, value in data.items():
+            for key, value in (data or {}).items():
                 if key.startswith('field_'):
                     field_name = key.replace('field_', '')
                     # 尝试获取字段的实际名称
@@ -423,7 +423,7 @@ def create_flow():
             
             # 处理文件上传
             try:
-                for key, file in files.items():
+                for key, file in (files or {}).items():
                     if key.startswith('field_') and file.filename:
                         field_name = key.replace('field_', '')
                         # 尝试获取字段的实际名称
