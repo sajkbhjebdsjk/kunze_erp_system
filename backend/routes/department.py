@@ -206,7 +206,7 @@ def get_department_details(department_id):
         cursor.execute('SELECT DISTINCT area_manager FROM management_staff ORDER BY area_manager')
         areas = cursor.fetchall()
         
-        cursor.execute('SELECT station_name, area_manager FROM stations GROUP BY station_name ORDER BY station_name')
+        cursor.execute('SELECT DISTINCT station_name, area_manager FROM stations ORDER BY station_name')
         stations = cursor.fetchall()
         
         # 构建部门映射
