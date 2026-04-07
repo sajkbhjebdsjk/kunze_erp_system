@@ -131,10 +131,16 @@ def get_stations():
         
         # 从stations表中获取站点数据
         if city_code and city_code != 'all':
-            query = 'SELECT station_id, station_name, area_manager FROM stations WHERE city_code = %s GROUP BY station_name ORDER BY station_name'
+            query = '''SELECT station_id, station_name, area_manager 
+                       FROM stations WHERE city_code = %s 
+                       GROUP BY station_id, station_name, area_manager 
+                       ORDER BY station_name'''
             cursor.execute(query, (city_code,))
         else:
-            query = 'SELECT station_id, station_name, area_manager FROM stations GROUP BY station_name ORDER BY station_name'
+            query = '''SELECT station_id, station_name, area_manager 
+                       FROM stations 
+                       GROUP BY station_id, station_name, area_manager 
+                       ORDER BY station_name'''
             cursor.execute(query)
         stations = cursor.fetchall()
         
