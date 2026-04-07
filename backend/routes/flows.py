@@ -224,11 +224,14 @@ def get_flow_detail(flow_id):
 def create_flow():
     """创建流程或流程架构配置"""
     try:
-        # 尝试获取JSON数据，如果失败则获取FormData
-        try:
-            data = request.get_json()
-        except:
+        # 获取请求数据（JSON 或 FormData）
+        data = request.get_json()
+        if data is None:
             data = request.form.to_dict()
+        
+        # 确保 data 是字典类型
+        if not isinstance(data, dict):
+            data = {}
             
         # 处理文件上传
         files = request.files or {}
