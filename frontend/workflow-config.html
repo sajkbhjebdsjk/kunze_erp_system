@@ -717,12 +717,12 @@
                     steps: steps
                 };
                 
-                let url = 'http://localhost:5000/api/flows';
+                let url = `${window.API_BASE_URL}$1`;
                 let method = 'POST';
                 
                 // 如果是编辑现有流程，使用PUT请求
                 if (currentArchitectureId) {
-                    url = `http://localhost:5000/api/flows/architecture/${currentArchitectureId}`;
+                    url = `window.API_BASE_URL/api/flows/architecture/${currentArchitectureId}`;
                     method = 'PUT';
                 }
                 
@@ -754,7 +754,7 @@
 
             // 加载流程数据
             function loadFlowData() {
-                fetch('http://localhost:5000/api/flows')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -817,7 +817,7 @@
             // 编辑流程
             window.editFlow = function(architectureId) {
                 currentArchitectureId = architectureId;
-                fetch(`http://localhost:5000/api/flows/architecture/${architectureId}`)
+                fetch(`window.API_BASE_URL/api/flows/architecture/${architectureId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1131,7 +1131,7 @@
                 const action = currentStatus === 'enabled' ? '停用' : '启用';
                 
                 if (confirm(`确定要${action}这个流程吗？`)) {
-                    fetch(`http://localhost:5000/api/flows/architecture/${architectureId}/status`, {
+                    fetch(`window.API_BASE_URL/api/flows/architecture/${architectureId}/status`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1162,7 +1162,7 @@
             // 删除流程
             window.deleteFlow = function(architectureId) {
                 if (confirm('确定要删除这个流程吗？')) {
-                    fetch(`http://localhost:5000/api/flows/architecture/${architectureId}`, {
+                    fetch(`window.API_BASE_URL/api/flows/architecture/${architectureId}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -1183,7 +1183,7 @@
 
             // 加载审批人
             function loadApprovers() {
-                fetch('http://localhost:5000/api/users')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1200,7 +1200,7 @@
             
             // 加载已启用的薪资方案
             function loadEnabledSalaryPlans(fieldCount) {
-                fetch('http://localhost:5000/api/salary-plans?status=enabled')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         const select = document.getElementById(`salary-plan-select-${fieldCount}`);
@@ -1230,7 +1230,7 @@
 
             // 加载已启用的合同
             function loadEnabledContracts(fieldCount) {
-                fetch('http://localhost:5000/api/contracts')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         const select = document.getElementById(`contract-select-${fieldCount}`);

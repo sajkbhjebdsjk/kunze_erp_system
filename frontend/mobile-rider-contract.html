@@ -554,7 +554,7 @@
                 submitBtn.innerHTML = '<span class="loading-spinner"></span> 正在提交...';
 
                 try {
-                    const response = await fetch('http://localhost:5000/api/rider-contracts/sign', {
+                    const response = await fetch(`${window.API_BASE_URL}$1`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -582,7 +582,7 @@
                         const contractId = result.data.id;
                         const contentArea = document.getElementById('contractContentArea');
 
-                        fetch(`http://localhost:5000/api/rider-contracts/signed/${contractId}`)
+                        fetch(`window.API_BASE_URL/api/rider-contracts/signed/${contractId}`)
                             .then(res => res.json())
                             .then(data => {
                                 if (data.success && data.data && data.data.content) {
@@ -643,7 +643,7 @@
             
             if (checkIdCard) {
                 document.getElementById('id_card').value = checkIdCard;
-                fetch(`http://localhost:5000/api/rider-contracts/check-status/${checkIdCard}`)
+                fetch(`window.API_BASE_URL/api/rider-contracts/check-status/${checkIdCard}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.signed) {

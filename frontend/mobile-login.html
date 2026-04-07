@@ -122,7 +122,7 @@
                 }
 
                 // 调用后端登录API
-                fetch('http://localhost:5000/api/login', {
+                fetch(`${window.API_BASE_URL}$1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

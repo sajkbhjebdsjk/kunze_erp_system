@@ -511,7 +511,7 @@
             const selectedCity = city || localStorage.getItem('selectedCity') || 'all';
             
             // 构建查询参数
-            let url = 'http://localhost:5000/api/users';
+            let url = `${window.API_BASE_URL}$1`;
             if (selectedCity && selectedCity !== 'all') {
                 url += `?city_code=${selectedCity}`;
             }
@@ -532,7 +532,7 @@
         }
         
         function loadDepartments() {
-            fetch('http://localhost:5000/api/departments')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     const select = document.getElementById('user-department');
@@ -575,7 +575,7 @@
         }
         
         function loadCities() {
-            fetch('http://localhost:5000/api/cities')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     const select = document.getElementById('user-city');
@@ -618,7 +618,7 @@
         }
         
         function loadPositions() {
-            fetch('http://localhost:5000/api/positions')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('加载岗位数据:', data);
@@ -697,7 +697,7 @@
         }
         
         function editUser(id) {
-            fetch('http://localhost:5000/api/users')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -725,7 +725,7 @@
         
         function deleteUser(id) {
             if (confirm('确定要删除这个账号吗？')) {
-                fetch(`http://localhost:5000/api/users/${id}`, {
+                fetch(`window.API_BASE_URL/api/users/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -749,12 +749,12 @@
             document.getElementById('roles-user-id').value = userId;
             
             // 加载所有角色
-            fetch('http://localhost:5000/api/roles')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // 加载用户已有角色
-                        fetch(`http://localhost:5000/api/users/${userId}/roles`)
+                        fetch(`window.API_BASE_URL/api/users/${userId}/roles`)
                             .then(response => response.json())
                             .then(userRolesData => {
                                 if (userRolesData.success) {
@@ -796,7 +796,7 @@
                 alert('编辑功能待实现');
             } else {
                 // 添加用户
-                fetch('http://localhost:5000/api/users', {
+                fetch(`${window.API_BASE_URL}$1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -834,7 +834,7 @@
                 .filter(cb => cb.checked)
                 .map(cb => parseInt(cb.value));
             
-            fetch(`http://localhost:5000/api/users/${userId}/roles/batch`, {
+            fetch(`window.API_BASE_URL/api/users/${userId}/roles/batch`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

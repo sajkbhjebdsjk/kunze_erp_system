@@ -685,7 +685,7 @@
             const selectedCity = city || localStorage.getItem('selectedCity') || 'all';
             
             // 构建查询参数
-            let url = 'http://127.0.0.1:5000/api/stations';
+            let url = `${window.API_BASE_URL}/api/stations`;
             if (selectedCity && selectedCity !== 'all') {
                 url += `?city_code=${selectedCity}`;
             }
@@ -816,7 +816,7 @@
                     const areaOption = document.querySelector(`#parent-department option[value="${parentId}"]`);
                     const areaManager = areaOption ? areaOption.textContent : '';
                     
-                    fetch('http://127.0.0.1:5000/api/stations', {
+                    fetch(`${window.API_BASE_URL}$1`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -858,7 +858,7 @@
             }
             
             // 从API获取部门详细信息
-            fetch(`http://127.0.0.1:5000/api/departments/${departmentId}`)
+            fetch(`window.API_BASE_URL/api/departments/${departmentId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -942,7 +942,7 @@
             }
             
             // 从API获取部门详细信息
-            fetch(`http://127.0.0.1:5000/api/departments/${departmentId}`)
+            fetch(`window.API_BASE_URL/api/departments/${departmentId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -1029,7 +1029,7 @@
             
             if (name && position) {
                 // 调用API添加管理人员
-                fetch('http://127.0.0.1:5000/api/management-staff', {
+                fetch(`${window.API_BASE_URL}$1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1076,7 +1076,7 @@
             
             if (name && position) {
                 // 调用API更新管理人员
-                fetch(`http://127.0.0.1:5000/api/management-staff/${manager.id}`, {
+                fetch(`window.API_BASE_URL/api/management-staff/${manager.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1119,7 +1119,7 @@
             
             if (confirm('确定要删除这个管理人员吗？')) {
                 // 调用API删除管理人员
-                fetch(`http://127.0.0.1:5000/api/management-staff/${manager.id}`, {
+                fetch(`window.API_BASE_URL/api/management-staff/${manager.id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())

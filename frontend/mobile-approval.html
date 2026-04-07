@@ -161,7 +161,7 @@
                 lucide.createIcons();
 
                 // 从后端API获取启用的工作流程
-                fetch('http://localhost:5000/api/flows?status=enabled')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('网络响应错误');

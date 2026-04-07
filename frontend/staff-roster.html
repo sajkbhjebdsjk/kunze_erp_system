@@ -874,7 +874,7 @@
             }
             
             // 从后端API获取数据
-            fetch(`http://localhost:5000/api/admin/roster?${params.toString()}`)
+            fetch(`window.API_BASE_URL/api/admin/roster?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -933,8 +933,8 @@
                     <td>${staff.emergency_contact_phone || ''}</td>
                     <td>${staff.current_address || ''}</td>
                     <td>${staff.contract_status || ''}</td>
-                    <td>${staff.id_front_photo ? '<a href="http://localhost:5000/' + staff.id_front_photo + '" target="_blank">查看</a>' : '未上传'}</td>
-                    <td>${staff.id_back_photo ? '<a href="http://localhost:5000/' + staff.id_back_photo + '" target="_blank">查看</a>' : '未上传'}</td>
+                    <td>${staff.id_front_photo ? '<a href=`${window.API_BASE_URL}/' + staff.id_front_photo + '`" target="_blank">查看</a>' : '未上传'}</td>
+                    <td>${staff.id_back_photo ? '<a href=`${window.API_BASE_URL}/' + staff.id_back_photo + '`" target="_blank">查看</a>' : '未上传'}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="action-btn edit" onclick="editStaff(${staff.id})">
@@ -955,7 +955,7 @@
         
         function editStaff(id) {
             // 从后端API获取管理员信息
-            fetch(`http://localhost:5000/api/admin/roster/${id}`)
+            fetch(`window.API_BASE_URL/api/admin/roster/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -987,7 +987,7 @@
         function deleteStaff(id) {
             if (confirm('确定要删除这个人员吗？')) {
                 // 调用后端API删除管理员
-                fetch(`http://localhost:5000/api/admin/roster/${id}`, {
+                fetch(`window.API_BASE_URL/api/admin/roster/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -1182,7 +1182,7 @@
         
         function uploadStaffData(staffList) {
             // 上传数据到服务器
-            fetch('http://localhost:5000/api/admin/roster/batch', {
+            fetch(`${window.API_BASE_URL}$1`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1206,7 +1206,7 @@
         
         function exportStaffData() {
             // 从后端API获取所有数据
-            fetch('http://localhost:5000/api/admin/roster?page=1&page_size=1000')
+            fetch(`${window.API_BASE_URL}$1`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -1299,7 +1299,7 @@
                 status
             };
             
-            const url = id ? `http://localhost:5000/api/admin/roster/${id}` : 'http://localhost:5000/api/admin/roster';
+            const url = id ? `window.API_BASE_URL/api/admin/roster/${id}` : `${window.API_BASE_URL}$1`;
             const method = id ? 'PUT' : 'POST';
             
             // 调用保存API

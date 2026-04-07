@@ -126,7 +126,7 @@
             
             // 加载薪资方案选项
             function loadSalaryPlansForField(fieldId) {
-                fetch('http://localhost:5000/api/salary-plans?status=enabled')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         const select = document.getElementById(`salary-plan-select-${fieldId}`);
@@ -158,7 +158,7 @@
 
             // 加载合同选项
             function loadContractsForField(fieldId) {
-                fetch('http://localhost:5000/api/contracts')
+                fetch(`${window.API_BASE_URL}$1`)
                     .then(response => response.json())
                     .then(data => {
                         const select = document.getElementById(`contract-select-${fieldId}`);
@@ -220,7 +220,7 @@
                 lucide.createIcons();
 
                 // 从后端API获取流程详情
-                fetch(`http://localhost:5000/api/flows/architecture/${flowId}`)
+                fetch(`window.API_BASE_URL/api/flows/architecture/${flowId}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('网络响应错误');
@@ -588,7 +588,7 @@
                 formData.append('employee_name', employeeName);
 
                 // 提交表单数据
-                fetch('http://localhost:5000/api/flows', {
+                fetch(`${window.API_BASE_URL}$1`, {
                     method: 'POST',
                     body: formData
                 })

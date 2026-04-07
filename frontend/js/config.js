@@ -6,7 +6,7 @@
         const port = window.location.port;
         
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            return 'http://localhost:5000';
+            return 'window.API_BASE_URL';
         }
         
         if (protocol === 'https:') {
