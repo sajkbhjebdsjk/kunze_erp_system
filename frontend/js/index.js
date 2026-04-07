@@ -304,16 +304,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // 后续将通过API获取数据
         console.log('更新城市数据:', city);
         
-        // 清空现有数据
-        const performanceGrid = document.querySelector('.performance-grid');
-        if (performanceGrid) {
-            performanceGrid.innerHTML = '';
-        }
+        // 重置城市运营履约卡片数据为默认值
+        const budgetOrderAvg = document.getElementById('budget-order-average');
+        const actualOrderAvg = document.getElementById('actual-order-average');
+        const monthlyOrders = document.getElementById('monthly-orders');
+        const dailyOrders = document.getElementById('daily-orders');
+        const logisticsRate = document.getElementById('logistics-rate');
 
-        const regionTable = document.getElementById('region-table') ? document.getElementById('region-table').querySelector('tbody') : null;
-        if (regionTable) {
-            regionTable.innerHTML = '';
-        }
+        if (budgetOrderAvg) budgetOrderAvg.textContent = '¥0';
+        if (actualOrderAvg) actualOrderAvg.textContent = '¥0';
+        if (monthlyOrders) monthlyOrders.textContent = '0';
+        if (dailyOrders) dailyOrders.textContent = '0';
+        if (logisticsRate) logisticsRate.textContent = '0%';
         
         // 加载站点数据到部门下拉框
         loadStationData(city);

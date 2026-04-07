@@ -569,6 +569,42 @@
     <script src="js/index.js"></script>
 
     <script>
+        // 全局函数定义（在 DOMContentLoaded 之前，确保立即可用）
+        function switchTab(tab) {
+            const tabTemplate = document.getElementById('tabTemplate');
+            const tabRiderContract = document.getElementById('tabRiderContract');
+            const templateSection = document.getElementById('templateSection');
+            const riderContractSection = document.getElementById('riderContractSection');
+
+            if (!tabTemplate || !tabRiderContract) return;
+
+            if (tab === 'template') {
+                tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
+                tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
+                if (templateSection) templateSection.classList.remove('hidden');
+                if (riderContractSection) riderContractSection.classList.add('hidden');
+            } else {
+                tabTemplate.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all text-gray-600 hover:bg-gray-100';
+                tabRiderContract.className = 'flex-1 px-6 py-3 rounded-xl font-medium transition-all bg-primary text-white';
+                if (templateSection) templateSection.classList.add('hidden');
+                if (riderContractSection) riderContractSection.classList.remove('hidden');
+
+                // 延迟加载骑手合同数据
+                setTimeout(() => {
+                    if (typeof loadRiderContracts === 'function') loadRiderContracts();
+                    if (typeof loadRiderContractStats === 'function') loadRiderContractStats();
+                    if (typeof loadContractTemplates === 'function') loadContractTemplates();
+                }, 100);
+            }
+
+            // 重新渲染图标
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+        }
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 页面元素
             const listPage = document.getElementById('listPage');

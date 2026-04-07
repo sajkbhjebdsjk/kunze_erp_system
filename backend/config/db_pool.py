@@ -21,6 +21,7 @@ DB_CONFIG = {
     'password': os.environ.get('DB_PASSWORD', '123456'),
     'database': os.environ.get('DB_NAME', 'erp_system'),
     'charset': 'utf8mb4',
+    'collation': 'utf8mb4_unicode_ci',
     'cursorclass': pymysql.cursors.DictCursor,
     'autocommit': False
 }
