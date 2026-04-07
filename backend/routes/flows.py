@@ -475,10 +475,12 @@ def create_flow():
             
             return jsonify({'flow_id': new_flow_id, 'message': '流程创建成功'}), 201
     except Exception as e:
+        import traceback
         print(f'创建流程错误: {e}')
+        print(f'错误堆栈:\n{traceback.format_exc()}')
         if 'conn' in locals():
             conn.rollback()
-        return jsonify({'success': False, 'message': '创建流程失败'}), 500
+        return jsonify({'success': False, 'message': f'创建流程失败: {str(e)}'}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()

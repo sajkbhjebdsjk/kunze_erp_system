@@ -749,7 +749,7 @@
             document.getElementById('roles-user-id').value = userId;
             
             // 加载所有角色
-            fetch(`${window.API_BASE_URL}/api/users/${userId}`)
+            fetch(`${window.API_BASE_URL}/api/roles`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
