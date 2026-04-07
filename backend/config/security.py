@@ -74,10 +74,11 @@ class SecurityConfig:
         
         # Content Security Policy - 防止XSS和数据注入攻击
         # 生产环境允许连接到 Railway 域名，开发环境允许 localhost
-        _connect_src = "'self' http://localhost:5000 http://127.0.0.1:5000" if _flask_env == 'development' else "'self'"
         'Content-Security-Policy': (
-            f"default-src 'self'; "
-            f"connect-src {_connect_src} "
+            "default-src 'self'; "
+            "connect-src 'self' "
+            + ("http://localhost:5000 http://127.0.0.1:5000 " if _flask_env == 'development' else "")
+            + "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
             "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
             "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
