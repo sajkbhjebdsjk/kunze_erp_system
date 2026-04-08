@@ -18,9 +18,15 @@ import re
 
 rider_contract_bp = Blueprint('rider_contract', __name__)
 
-UPLOAD_FOLDER = 'uploads/rider_contracts'
-SIGNATURE_FOLDER = 'uploads/rider_contract_signatures'
-PDF_FOLDER = 'uploads/rider_contract_pdfs'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads', 'rider_contracts')
+SIGNATURE_FOLDER = os.path.join(BASE_DIR, 'uploads', 'rider_contract_signatures')
+PDF_FOLDER = os.path.join(BASE_DIR, 'uploads', 'rider_contract_pdfs')
+
+print(f'[PATH-DEBUG] BASE_DIR={BASE_DIR}')
+print(f'[PATH-DEBUG] UPLOAD_FOLDER={UPLOAD_FOLDER}')
+print(f'[PATH-DEBUG] SIGNATURE_FOLDER={SIGNATURE_FOLDER}')
+print(f'[PATH-DEBUG] PDF_FOLDER={PDF_FOLDER}')
 
 for folder in [UPLOAD_FOLDER, SIGNATURE_FOLDER, PDF_FOLDER]:
     if not os.path.exists(folder):
@@ -75,10 +81,16 @@ def save_signature_image(signature_base64_data):
         test_img.verify()
         img_size = test_img.size
         del test_img
+
+        if len(img_data) < 200:
+            os.remove(filepath)
+            raise ValueError(f'签名图片数据过小({len(img_data)} bytes)，可能是空白签名')
+
         print(f'[签名] 保存成功: {filepath} ({len(img_data)} bytes, {img_size[0]}x{img_size[1]})')
     except Exception:
         del test_img
-        os.remove(filepath)
+        if os.path.exists(filepath):
+            os.remove(filepath)
         raise ValueError('签名图片数据不是有效的图片文件')
 
     return filepath
@@ -400,6 +412,13 @@ def generate_pdf(contract_no, party_b_name, id_card, phone, address,
         print(f'[PDF] doc.build 失败: {build_err}')
         traceback.print_exc()
         raise
+
+    if not os.path.exists(pdf_filepath):
+        raise Exception(f'PDF文件生成后不存在: {pdf_filepath}')
+
+    file_size = os.path.getsize(pdf_filepath)
+    print(f'[PDF生成] 完成: {pdf_filename} ({file_size} bytes), 绝对路径={os.path.abspath(pdf_filepath)}')
+
     return pdf_filepath, pdf_filename
 
 @rider_contract_bp.route('/api/rider-contracts/sign', methods=['POST'])
