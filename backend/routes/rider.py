@@ -444,9 +444,12 @@ def get_rider_stats():
             }
         })
     except Exception as e:
+        import traceback
+        print(f'[RIDER-STATS-ERROR] 骑手统计接口错误: {e}')
+        print(f'[RIDER-STATS-ERROR] 完整堆栈:\n{traceback.format_exc()}')
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': f'获取统计数据失败: {str(e)}'
         }), 500
 
 @rider_bp.route('/api/stations', methods=['GET'])
