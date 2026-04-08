@@ -431,16 +431,25 @@ def get_rider_stats():
         cursor.close()
         conn.close()
         
+        # 将 Decimal 类型转换为 int（MySQL SUM() 返回 Decimal，jsonify 无法序列化）
+        def to_int(value):
+            if value is None:
+                return 0
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return 0
+        
         return jsonify({
             'success': True,
             'data': {
-                'active': result['active_count'] or 0,
-                'full_time': result['full_time_count'] or 0,
-                'part_time': result['part_time_count'] or 0,
-                'new_riders': result['new_rider_count'] or 0,
-                'today_entry': result['today_entry_count'] or 0,
-                'no_first_run': result['no_first_run_count'] or 0,
-                'abnormal': result['abnormal_count'] or 0
+                'active': to_int(result.get('active_count')),
+                'full_time': to_int(result.get('full_time_count')),
+                'part_time': to_int(result.get('part_time_count')),
+                'new_riders': to_int(result.get('new_rider_count')),
+                'today_entry': to_int(result.get('today_entry_count')),
+                'no_first_run': to_int(result.get('no_first_run_count')),
+                'abnormal': to_int(result.get('abnormal_count'))
             }
         })
     except Exception as e:
