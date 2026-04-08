@@ -1164,11 +1164,22 @@ def get_third_party_analysis():
         cursor.close()
         conn.close()
         
+        # 将 Decimal 类型转换为 int（MySQL 聚合函数返回 Decimal）
+        def convert_decimal(obj):
+            if isinstance(obj, dict):
+                return {k: (int(v) if hasattr(v, '__trunc__') else v) for k, v in obj.items()}
+            return obj
+        
+        converted_data = [convert_decimal(item) for item in third_party_data]
+        
         return jsonify({
             'success': True,
-            'data': third_party_data
+            'data': converted_data
         })
     except Exception as e:
+        import traceback
+        print(f'[THIRD-PARTY-ERROR] 三方分析接口错误: {e}')
+        print(f'[THIRD-PARTY-ERROR] 完整堆栈:\n{traceback.format_exc()}')
         return jsonify({
             'success': False,
             'error': str(e)

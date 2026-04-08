@@ -69,14 +69,23 @@ def get_contracts():
         cursor.execute('SELECT id, name, filename, size, status, created_at FROM contracts')
         contracts = cursor.fetchall()
         
+        print(f'[CONTRACTS-DEBUG] 查询到 {len(contracts)} 个合同模板')
+        
         # 格式化创建时间
         for contract in contracts:
-            contract['created_at'] = contract['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            if contract.get('created_at'):
+                contract['created_at'] = contract['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            # 确保 size 是 int（可能是 Decimal）
+            if hasattr(contract.get('size'), '__trunc__'):
+                contract['size'] = int(contract['size'])
         
         cursor.close()
         conn.close()
         return jsonify({'success': True, 'data': contracts})
     except Exception as e:
+        import traceback
+        print(f'[CONTRACTS-ERROR] 获取合同列表失败: {e}')
+        print(f'[CONTRACTS-ERROR] 完整堆栈:\n{traceback.format_exc()}')
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @contracts_bp.route('/api/contracts/upload', methods=['POST'])
