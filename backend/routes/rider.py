@@ -23,7 +23,14 @@ def get_riders():
         recruitment_channel = request.args.get('recruitment_channel')
         
         # 构建查询语句
-        query = "SELECT r.*, s.id as station_id FROM riders r LEFT JOIN stations s ON r.station_name = s.station_name WHERE 1=1"
+        query = """SELECT r.*, 
+                          s.id as station_id, 
+                          s.city_code as city,
+                          c.city_name 
+                   FROM riders r 
+                   LEFT JOIN stations s ON r.station_name = s.station_name 
+                   LEFT JOIN cities c ON s.city_code = c.city_code 
+                   WHERE 1=1"""
         params = []
         
         # 添加城市筛选
@@ -309,14 +316,34 @@ def update_rider(rider_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 构建更新语句
+        # 允许更新的字段白名单
+        ALLOWED_FIELDS = [
+            'name', 'phone', 'id_card', 'station_name', 'city',
+            'work_nature', 'unit_price', 'settlement_cycle',
+            'entry_date', 'first_run_date', 'birth_date',
+            'recruitment_channel', 'referral_name',
+            'salary_plan_id', 'emergency_phone',
+            'position_status', 'exit_date', 'leave_date',
+            'tags', 'remark', 'contract_status'
+        ]
+        
+        # 构建更新语句（只允许白名单中的字段）
         update_fields = []
         update_values = []
         
         for key, value in data.items():
-            if key != 'rider_id':  # 不更新骑手ID
-                update_fields.append(f"{key} = %s")
+            if key in ALLOWED_FIELDS and key != 'rider_id':
+                # 跳过空字符串，但允许 None（用于清空字段）
+                if value == '' or value is None:
+                    continue
+                update_fields.append(f"`{key}` = %s")
                 update_values.append(value)
+        
+        if not update_fields:
+            return jsonify({
+                'success': False,
+                'error': '没有需要更新的字段'
+            }), 400
         
         update_values.append(rider_id)
         
