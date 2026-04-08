@@ -628,6 +628,9 @@
             // 加载合同数据
             loadContracts();
 
+            // 加载合同模板下拉框数据（无论哪个标签页都预加载）
+            if (typeof loadContractTemplates === 'function') loadContractTemplates();
+
             // 文件上传事件
             fileUpload.addEventListener('change', function(e) {
                 const file = e.target.files[0];
