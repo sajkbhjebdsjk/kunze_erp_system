@@ -490,7 +490,7 @@ def sign_rider_contract():
                     pdf_path, pdf_filename, sign_time, status,
                     view_token, view_count, view_max_allowed, view_expires_at,
                     ip_address, user_agent
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (
                 contract_no, rider_id or None, party_b_name, id_card, phone, address,
                 emergency_name or None, emergency_phone or None, emergency_address or None,

@@ -857,7 +857,8 @@
                             .then(response => response.json())
                             .then(rolePermsData => {
                                 if (rolePermsData.success) {
-                                    const rolePerms = rolePermsData.permissions.map(p => p.id);
+                                    const rolePerms = rolePermsData.permissions.map(p => String(p.id));
+                                    console.log('[权限调试] 角色已有权限IDs:', rolePerms, '原始数据:', rolePermsData.permissions);
                                     renderPermissionsList(data.permissions, rolePerms);
                                     document.getElementById('permissions-modal').style.display = 'block';
                                 }
@@ -908,7 +909,7 @@
                         const item = document.createElement('div');
                         item.className = 'permission-item';
                         item.innerHTML = `
-                            <input type="checkbox" id="perm-${perm.id}" value="${perm.id}" ${rolePerms.includes(perm.id) ? 'checked' : ''}>
+                            <input type="checkbox" id="perm-${perm.id}" value="${perm.id}" ${rolePerms.includes(String(perm.id)) ? 'checked' : ''}>
                             <label for="perm-${perm.id}">
                                 ${perm.name}
                                 <div class="permission-desc">${perm.description}</div>
