@@ -218,11 +218,11 @@ def generate_pdf(contract_no, party_b_name, id_card, phone, address,
             if '签字' not in text:
                 result = re.sub(
                     r'(乙方)\s+[（(]?(?:承揽人)?[）)]?\s*[：:]\s{2,}(?!.*签字)',
-                    rf'\1（承揽人）：{party_b_name}', result
+                    lambda m: m.group(1) + f'（承揽人）：{party_b_name}', result
                 )
                 result = re.sub(
                     r'(乙方\s*[（(]?)(?:承揽人)?([）)]?\s*[：:])\s*</p>',
-                    rf'\1\2（承揽人）：{party_b_name}</p>', result
+                    lambda m: m.group(1) + m.group(2) + f'（承揽人）：{party_b_name}</p>', result
                 )
 
         if id_card:
@@ -234,7 +234,7 @@ def generate_pdf(contract_no, party_b_name, id_card, phone, address,
             )
             result = re.sub(
                 r'(身份证号码?)\s*[：:][ \t]*$',
-                rf'\1：{id_card}', result, flags=re.MULTILINE
+                lambda m: m.group(1) + f'：{id_card}', result, flags=re.MULTILINE
             )
 
         if phone:
@@ -268,21 +268,21 @@ def generate_pdf(contract_no, party_b_name, id_card, phone, address,
         if emergency_name:
             result = re.sub(
                 r'(紧急联系?人[（(]?\s*姓名[）)]?\s*[：:])\s*(<u>[^<]*</u>|\s+)',
-                rf'\1{emergency_name}', result
+                lambda m: m.group(1) + emergency_name, result
             )
             result = re.sub(
                 r'(姓名)\s*[：:]\s*(<u>[^<]*</u>)',
-                rf'\1：{emergency_name}', result
+                lambda m: m.group(1) + f'：{emergency_name}', result
             )
         if emergency_phone:
             result = re.sub(
                 r'(紧急联系?人\s*(?:电话|手机)\s*[：:])\s*(<u>[^<]*</u>|\s+)',
-                rf'\1{emergency_phone}', result
+                lambda m: m.group(1) + emergency_phone, result
             )
         if emergency_address:
             result = re.sub(
                 r'(紧急联系?人\s*地址\s*[：:])\s*(<u>[^<]*</u>|\s+)',
-                rf'\1{emergency_address}', result
+                lambda m: m.group(1) + emergency_address, result
             )
 
         result = re.sub(r'<u>\s*</u>', '', result)
@@ -290,7 +290,7 @@ def generate_pdf(contract_no, party_b_name, id_card, phone, address,
         if party_b_name and party_b_name not in result and '乙方' in result and '签字' not in result:
             result = re.sub(
                 r'(乙方[^\n]*?[（(]?(?:承揽人)?[）)]?\s*[：:])\s*$',
-                rf'\1{party_b_name}', result
+                lambda m: m.group(1) + party_b_name, result
             )
             if party_b_name not in result:
                 result = re.sub(
