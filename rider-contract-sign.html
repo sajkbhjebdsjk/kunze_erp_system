@@ -978,7 +978,12 @@
             if (!emergencyPhone) { showResult('error', '❌ 提示', '请输入紧急联系人电话'); return; }
             if (!emergencyAddress) { showResult('error', '❌ 提示', '请输入紧急联系人地址'); return; }
 
-            const signatureData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+            let signatureData = getSignatureDataUrl();
+            if (!signatureData) {
+                showResult('error', '❌ 提示', '请先在画板上手写签名');
+                return;
+            }
+            console.log('[签名-DEBUG] 签名数据长度:', signatureData.length, '前缀:', signatureData.substring(0, 30));
 
             const btn = document.getElementById('btnSign');
             btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> 正在提交...';
