@@ -79,6 +79,10 @@ def get_contracts():
             if hasattr(contract.get('size'), '__trunc__'):
                 contract['size'] = int(contract['size'])
         
+        # 打印具体数据用于调试
+        if contracts:
+            print(f'[CONTRACTS-DEBUG] 第一个合同: id={contracts[0].get("id")}, name={contracts[0].get("name")}')
+        
         cursor.close()
         conn.close()
         return jsonify({'success': True, 'data': contracts})

@@ -1145,7 +1145,19 @@ def get_third_party_analysis():
         # 获取查询参数
         city_code = request.args.get('city_code', 'hangzhou')  # 默认杭州
         
-        # 获取三方入职数据
+        # 先查看 riders 表中 recruitment_channel 的实际值（调试用）
+        cursor.execute("""
+            SELECT DISTINCT recruitment_channel, COUNT(*) as cnt 
+            FROM riders 
+            WHERE station_name IN (SELECT station_name FROM stations WHERE city_code = %s)
+            GROUP BY recruitment_channel
+        """, (city_code,))
+        channels = cursor.fetchall()
+        print(f'[THIRD-PARTY-DEBUG] city_code={city_code} 的招聘渠道分布:')
+        for ch in channels:
+            print(f'  - {ch.get("recruitment_channel")}: {ch.get("cnt")} 人')
+        
+        # 获取三方入职数据（使用 LIKE 匹配多种可能的"三方"写法）
         cursor.execute("""
             SELECT 
                 station_name, 
@@ -1154,12 +1166,16 @@ def get_third_party_analysis():
                 COUNT(*) as total_count
             FROM riders 
             WHERE station_name IN (SELECT station_name FROM stations WHERE city_code = %s)
-            AND recruitment_channel = '三方'
+            AND (recruitment_channel LIKE '%三方%' OR recruitment_channel LIKE '%第三方%' OR recruitment_channel LIKE '%熊出没%')
             GROUP BY station_name
             ORDER BY entry_count DESC
         """, (city_code,))
         
         third_party_data = cursor.fetchall()
+        
+        print(f'[THIRD-PARTY-DEBUG] 查询到 {len(third_party_data)} 条三方数据')
+        for item in third_party_data:
+            print(f'  - {item.get("station_name")}: 入职 {item.get("entry_count")} 人')
         
         cursor.close()
         conn.close()
