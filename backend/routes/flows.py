@@ -3,7 +3,7 @@ from config.database import get_db_connection
 import pymysql
 import uuid
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 # 配置日志
@@ -799,6 +799,18 @@ def approve_flow(flow_id):
                             # 获取离职日期和离岗日期
                             exit_date = field_data.get('离职日期', None)
                             leave_date = field_data.get('离岗日期', None)
+                            
+                            # 如果没有提供离职日期，使用当前日期作为默认值
+                            if not exit_date:
+                                exit_date = datetime.now().strftime('%Y-%m-%d')
+                            
+                            # 如果没有提供离岗日期，使用离职日期+1天作为默认值
+                            if not leave_date and exit_date:
+                                try:
+                                    leave_date_obj = datetime.strptime(exit_date, '%Y-%m-%d') + timedelta(days=1)
+                                    leave_date = leave_date_obj.strftime('%Y-%m-%d')
+                                except:
+                                    leave_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
                             
                             # 判定岗位状态
                             position_status = '离职'
