@@ -161,128 +161,106 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function controlPermissions(userData) {
-        // 获取用户权限列表
         const userPermissions = userData.permissions || [];
         const permissionCodes = userPermissions.map(perm => perm.code);
-        
-        // 检查用户是否有KPI相关权限
+
+        console.log('[权限-DEBUG] 用户权限codes:', permissionCodes);
+        console.log('[权限-DEBUG] 用户权限原始数据:', JSON.stringify(userPermissions));
+
         let hasKpiPermission = false;
         permissionCodes.forEach(code => {
-            if ((code.includes('kpi') && !code.includes('config')) || 
-                (code.includes('plan') && !code.includes('salary')) || 
-                code.includes('achievement') || 
+            if ((code.includes('kpi') && !code.includes('config')) ||
+                (code.includes('plan') && !code.includes('salary')) ||
+                code.includes('achievement') ||
                 code.includes('attendance')) {
                 hasKpiPermission = true;
-                console.log('导致KPI权限为true的权限:', code);
             }
         });
-        
-        // 检查用户是否有经营管理相关权限
+
         const hasBusinessPermission = permissionCodes.some(code => code.includes('cost') || code.includes('profit'));
-        
-        // 检查用户是否有配置工具相关权限
         const hasConfigPermission = permissionCodes.some(code => code.includes('config'));
-        
-        // 检查用户是否有人事权限
-        const hasPersonnelPermission = permissionCodes.some(code => code.includes('organization') || code.includes('user_manage') || 
-                                                      code.includes('permission_manage') || code.includes('role_manage') || 
+        const hasPersonnelPermission = permissionCodes.some(code => code.includes('organization') || code.includes('user_manage') ||
+                                                      code.includes('permission_manage') || code.includes('role_manage') ||
                                                       code.includes('staff_roster'));
-        
-        // 调试：打印KPI权限判断结果
-        console.log('KPI权限判断结果:', hasKpiPermission);
-        console.log('权限列表:', permissionCodes);
-        
-        // 控制导航菜单显示
+
+        console.log('[权限-DEBUG] hasKpiPermission:', hasKpiPermission, 'hasBusinessPermission:', hasBusinessPermission, 'hasConfigPermission:', hasConfigPermission, 'hasPersonnelPermission:', hasPersonnelPermission);
+
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             const text = item.textContent.trim();
-            
-            // 检查是否需要显示
             let shouldShow = false;
-            
-            // 首页始终显示
+            let matchReason = '';
+
             if (text === '首页') {
                 shouldShow = true;
+                matchReason = '首页始终显示';
             }
-            // 组织架构
             else if (text === '组织架构' && permissionCodes.includes('organization')) {
                 shouldShow = true;
+                matchReason = '匹配 organization';
             }
-            // 角色管理
             else if (text === '角色管理' && permissionCodes.includes('role_manage')) {
                 shouldShow = true;
+                matchReason = '匹配 role_manage';
             }
-            // 权限管理
             else if (text === '权限管理' && permissionCodes.includes('permission_manage')) {
                 shouldShow = true;
+                matchReason = '匹配 permission_manage';
             }
-            // 账号管理
             else if (text === '账号管理' && permissionCodes.includes('user_manage')) {
                 shouldShow = true;
+                matchReason = '匹配 user_manage';
             }
-            // 骑手管理
             else if (text === '骑手管理' && permissionCodes.some(code => code.includes('rider'))) {
                 shouldShow = true;
+                matchReason = '匹配 rider*';
             }
-            // KPI管理及其子菜单
             else if (hasKpiPermission && (
-                text === 'KPI管理' || 
-                text === 'KPI达成' || 
-                text === '出勤管理' || 
-                text === '月累计划达成' || 
-                text === '日实时达成' || 
-                text === '有效出勤达成率' || 
-                text === '时段出勤达成率'
+                text === 'KPI管理' || text === 'KPI达成' || text === '出勤管理' ||
+                text === '月累计划达成' || text === '日实时达成' ||
+                text === '有效出勤达成率' || text === '时段出勤达成率'
             )) {
                 shouldShow = true;
+                matchReason = 'KPI权限组';
             }
-            // 经营管理及其子菜单
             else if (hasBusinessPermission && (
-                text === '经营管理' || 
-                text === '招聘成本' || 
-                text === '骑手成本' || 
-                text === '全职成本' || 
-                text === '骑手薪资表' || 
-                text === '兼职成本' || 
-                text === '系统罚单' || 
-                text === '管理成本' || 
-                text === '管理人员薪资表' || 
-                text === '绩效考核达成情况' || 
-                text === '管理成本预估' || 
-                text === '利润预估'
+                text === '经营管理' || text === '招聘成本' || text === '骑手成本' ||
+                text === '全职成本' || text === '骑手薪资表' || text === '兼职成本' ||
+                text === '系统罚单' || text === '管理成本' || text === '管理人员薪资表' ||
+                text === '绩效考核达成情况' || text === '管理成本预估' || text === '利润预估'
             )) {
                 shouldShow = true;
+                matchReason = '经营管理权限组';
             }
-            // 人员及权限管理
             else if (hasPersonnelPermission && text === '人员及权限管理') {
                 shouldShow = true;
+                matchReason = '人事权限组';
             }
-            // 管理人员花名册
             else if (text === '管理人员花名册' && permissionCodes.includes('staff_roster')) {
                 shouldShow = true;
+                matchReason = '匹配 staff_roster';
             }
-            // 配置工具及其子菜单
+            else if (text === '合同配置台' && permissionCodes.includes('contract_config')) {
+                shouldShow = true;
+                matchReason = '匹配 contract_config';
+            }
             else if (hasConfigPermission && (
-                text === '配置工具' || 
-                text === '工作流配置' || 
-                text === '招聘政策配置' || 
-                text === '薪资方案配置' || 
-                text === '内部绩效考核方案配置' || 
-                text === '固定费用配置' || 
-                text === '合同配置台'
+                text === '配置工具' || text === '工作流配置' || text === '招聘政策配置' ||
+                text === '薪资方案配置' || text === '内部绩效考核方案配置' || text === '固定费用配置'
             )) {
                 shouldShow = true;
+                matchReason = '配置工具权限组(不含合同配置台)';
             }
-            
-            // 调试：打印每个导航项的显示状态
-            if (text === 'KPI管理') {
-                console.log('KPI管理菜单显示状态:', shouldShow);
+
+            if (!shouldShow && (text !== '')) {
+                console.log(`[权限-DEBUG] 隐藏菜单: "${text}" - 无匹配权限`);
+            } else if (shouldShow) {
+                console.log(`[权限-DEBUG] 显示菜单: "${text}" - 原因: ${matchReason}`);
             }
-            
+
             if (shouldShow) {
                 item.style.display = 'block';
             } else {
-                // 默认隐藏导航项
                 item.style.display = 'none';
             }
         });

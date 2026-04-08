@@ -41,18 +41,22 @@ def get_permissions():
 def get_role_permissions(role_id):
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    
+
     try:
+        print(f'[权限-DEBUG] 获取角色{role_id}的权限...')
         cursor.execute('''
-            SELECT p.id, p.name, p.code, p.description 
-            FROM permissions p 
-            JOIN role_permissions rp ON p.id = rp.permission_id 
+            SELECT p.id, p.name, p.code, p.description
+            FROM permissions p
+            JOIN role_permissions rp ON p.id = rp.permission_id
             WHERE rp.role_id = %s
         ''', (role_id,))
         permissions = cursor.fetchall()
+        print(f'[权限-DEBUG] 角色{role_id}有{len(permissions)}个权限: {[p["code"] for p in permissions]}')
         return jsonify({'success': True, 'permissions': permissions})
     except Exception as e:
-        print(f'数据库错误: {e}')
+        print(f'[权限-ERROR] 获取角色权限失败: {e}')
+        import traceback
+        print(f'[权限-ERROR] 堆栈:\n{traceback.format_exc()}')
         return jsonify({'success': False, 'message': '数据库错误'})
     finally:
         cursor.close()

@@ -480,51 +480,92 @@ def sign_rider_contract():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # 三级降级INSERT：完整版 → 基础版 → 最小版（自动适配新旧表结构）
+        # 先检查是否已存在相同 id_card 的记录（处理唯一约束）
+        existing_id = None
         try:
-            cursor.execute('''
-                INSERT INTO rider_contracts (
-                    contract_no, rider_id, party_b_name, id_card, phone, address,
-                    emergency_name, emergency_phone, emergency_address,
-                    signature_image, signature_path, template_id, 
-                    pdf_path, pdf_filename, sign_time, status,
-                    view_token, view_count, view_max_allowed, view_expires_at,
-                    ip_address, user_agent
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (
-                contract_no, rider_id or None, party_b_name, id_card, phone, address,
-                emergency_name or None, emergency_phone or None, emergency_address or None,
-                signature_image, signature_path, template_id,
-                pdf_path, pdf_filename, datetime.now(), 1,
-                view_token, 0, 1,
-                datetime.now() + timedelta(hours=24),
-                request.remote_addr,
-                str(request.user_agent)[:500] if request.user_agent else None
-            ))
-        except Exception as e1:
-            print(f"[降级] 完整版INSERT失败: {e1}，尝试基础版...")
+            cursor.execute("SELECT id FROM rider_contracts WHERE id_card = %s ORDER BY id DESC LIMIT 1", (id_card,))
+            existing_row = cursor.fetchone()
+            if existing_row:
+                existing_id = existing_row[0]
+                print(f"[签署] 发现已存在的合同记录 id={existing_id}, id_card={id_card}，将更新而非插入")
+        except Exception as check_err:
+            print(f"[签署] 检查已有记录失败(非致命): {check_err}")
+
+        if existing_id:
+            # 更新已有记录
+            try:
+                cursor.execute("""
+                    UPDATE rider_contracts SET
+                        contract_no = %s, party_b_name = %s, phone = %s, address = %s,
+                        emergency_name = %s, emergency_phone = %s, emergency_address = %s,
+                        signature_image = %s, signature_path = %s, template_id = %s,
+                        pdf_path = %s, pdf_filename = %s, sign_time = %s, status = %s,
+                        view_token = %s, ip_address = %s, user_agent = %s
+                    WHERE id = %s
+                """, (
+                    contract_no, party_b_name, phone, address,
+                    emergency_name or None, emergency_phone or None, emergency_address or None,
+                    signature_image, signature_path, template_id,
+                    pdf_path, pdf_filename or '', datetime.now(), 1,
+                    view_token, request.remote_addr,
+                    str(request.user_agent)[:500] if request.user_agent else None,
+                    existing_id
+                ))
+                contract_id = existing_id
+                print(f"[签署] 更新已有记录成功 id={contract_id}")
+            except Exception as update_err:
+                print(f"[签署] 更新也失败: {update_err}，尝试重新插入...")
+                existing_id = None
+
+        if not existing_id:
+            # 三级降级INSERT：完整版 → 基础版 → 最小版（自动适配新旧表结构）
             try:
                 cursor.execute('''
                     INSERT INTO rider_contracts (
                         contract_no, rider_id, party_b_name, id_card, phone, address,
                         emergency_name, emergency_phone, emergency_address,
-                        signature_image, signature_path, template_id, 
-                        pdf_path, sign_time, status
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        signature_image, signature_path, template_id,
+                        pdf_path, pdf_filename, sign_time, status,
+                        view_token, view_count, view_max_allowed, view_expires_at,
+                        ip_address, user_agent
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (
                     contract_no, rider_id or None, party_b_name, id_card, phone, address,
                     emergency_name or None, emergency_phone or None, emergency_address or None,
                     signature_image, signature_path, template_id,
-                    pdf_path, datetime.now(), 1
+                    pdf_path, pdf_filename, datetime.now(), 1,
+                    view_token, 0, 1,
+                    datetime.now() + timedelta(hours=24),
+                    request.remote_addr,
+                    str(request.user_agent)[:500] if request.user_agent else None
                 ))
-            except Exception as e2:
-                print(f"[降级] 基础版INSERT也失败: {e2}，尝试最小版...")
-                cursor.execute('''
-                    INSERT INTO rider_contracts (contract_no, party_b_name, id_card, phone, address, signature_image, sign_time, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                ''', (contract_no, party_b_name, id_card, phone, address, signature_image, datetime.now(), 1))
+                print("[签署] 完整版INSERT成功")
+            except Exception as e1:
+                print(f"[降级] 完整版INSERT失败: {e1}，尝试基础版...")
+                try:
+                    cursor.execute('''
+                        INSERT INTO rider_contracts (
+                            contract_no, rider_id, party_b_name, id_card, phone, address,
+                            emergency_name, emergency_phone, emergency_address,
+                            signature_image, signature_path, template_id,
+                            pdf_path, sign_time, status
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ''', (
+                        contract_no, rider_id or None, party_b_name, id_card, phone, address,
+                        emergency_name or None, emergency_phone or None, emergency_address or None,
+                        signature_image, signature_path, template_id,
+                        pdf_path, datetime.now(), 1
+                    ))
+                    print("[签署] 基础版INSERT成功")
+                except Exception as e2:
+                    print(f"[降级] 基础版INSERT也失败: {e2}，尝试最小版...")
+                    cursor.execute('''
+                        INSERT INTO rider_contracts (contract_no, party_b_name, id_card, phone, address, signature_image, sign_time, status)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ''', (contract_no, party_b_name, id_card, phone, address, signature_image, datetime.now(), 1))
+                    print("[签署] 最小版INSERT成功")
 
-        contract_id = cursor.lastrowid
+            contract_id = cursor.lastrowid
         conn.commit()
 
         # ========== 补充降级INSERT可能缺失的字段 ==========

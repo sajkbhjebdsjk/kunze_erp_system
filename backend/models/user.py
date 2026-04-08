@@ -72,17 +72,24 @@ class User:
         """获取用户的权限"""
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        
+
         try:
+            print(f'[权限-DEBUG] 获取用户{user_id}的权限...')
             cursor.execute('''
-                SELECT p.id, p.name, p.code, p.description 
-                FROM permissions p 
-                JOIN role_permissions rp ON p.id = rp.permission_id 
-                JOIN user_roles ur ON rp.role_id = ur.role_id 
+                SELECT p.id, p.name, p.code, p.description
+                FROM permissions p
+                JOIN role_permissions rp ON p.id = rp.permission_id
+                JOIN user_roles ur ON rp.role_id = ur.role_id
                 WHERE ur.user_id = %s
             ''', (user_id,))
             permissions = cursor.fetchall()
+            print(f'[权限-DEBUG] 用户{user_id}有{len(permissions)}个权限: {[p.get("code") for p in permissions]}')
             return permissions
+        except Exception as e:
+            print(f'[权限-ERROR] 获取用户权限失败: {e}')
+            import traceback
+            print(f'[权限-ERROR] 堆栈:\n{traceback.format_exc()}')
+            return []
         finally:
             cursor.close()
             conn.close()
