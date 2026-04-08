@@ -1159,14 +1159,14 @@ def get_third_party_analysis():
         
         # 获取三方入职数据（使用 LIKE 匹配多种可能的"三方"写法）
         cursor.execute("""
-            SELECT 
-                station_name, 
+            SELECT
+                station_name,
                 COUNT(*) as entry_count,
                 SUM(CASE WHEN position_status = '离职' THEN 1 ELSE 0 END) as exit_count,
                 COUNT(*) as total_count
-            FROM riders 
+            FROM riders
             WHERE station_name IN (SELECT station_name FROM stations WHERE city_code = %s)
-            AND (recruitment_channel LIKE '%三方%' OR recruitment_channel LIKE '%第三方%' OR recruitment_channel LIKE '%熊出没%')
+            AND (recruitment_channel LIKE '%%三方%%' OR recruitment_channel LIKE '%%第三方%%' OR recruitment_channel LIKE '%%熊出没%%')
             GROUP BY station_name
             ORDER BY entry_count DESC
         """, (city_code,))

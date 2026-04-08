@@ -732,7 +732,7 @@
         }
 
         const templateId = getUrlParam('template_id');
-        const API_BASE = 'http://localhost:5000';
+        const API_BASE = window.location.protocol + '//' + window.location.hostname;
 
         let savedContractData = null;
 
