@@ -82,14 +82,22 @@ def register_chinese_font():
             download_path = os.path.join(os.path.dirname(__file__), 'fonts', 'NotoSansSC-Regular.otf')
             os.makedirs(os.path.dirname(download_path), exist_ok=True)
             print(f'[PDF字体] 尝试自动下载中文字体...')
-            urllib.request.urlretrieve(
-                'https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf',
-                download_path
-            )
-            if os.path.getsize(download_path) > 10000:
-                pdfmetrics.registerFont(TTFont('SimSun', download_path))
-                print(f'[PDF字体] 下载并注册成功: {os.path.getsize(download_path)} bytes')
-                return True
+            font_urls = [
+                'https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf',
+                'https://cdn.jsdelivr.net/npm/@aspect-build/rules@0.20.0/fonts/noto-sans-sc-regular.otf',
+            ]
+            for font_url in font_urls:
+                try:
+                    urllib.request.urlretrieve(font_url, download_path)
+                    if os.path.getsize(download_path) > 10000:
+                        pdfmetrics.registerFont(TTFont('SimSun', download_path))
+                        print(f'[PDF字体] 下载并注册成功: {os.path.getsize(download_path)} bytes from {font_url}')
+                        return True
+                    else:
+                        print(f'[PDF字体] 文件过小({os.path.getsize(download_path)} bytes)，尝试下一个URL')
+                except Exception as url_err:
+                    print(f'[PDF字体] URL下载失败 {font_url}: {url_err}')
+                    continue
         except Exception as e:
             print(f'[PDF字体] 自动下载失败: {e}')
 
