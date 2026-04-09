@@ -514,8 +514,14 @@
                         
                         // 添加选项按钮点击事件
                         const addOptionBtn = optionsDiv.querySelector('.add-option');
+                        addOptionBtn.dataset.fieldIndex = fieldCount;
                         addOptionBtn.addEventListener('click', function() {
-                            const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                            const idx = this.dataset.fieldIndex;
+                            const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                            if (!optionsList) {
+                                console.error('[工作流] 未找到选项列表容器 #options-list-' + idx);
+                                return;
+                            }
                             const optionCount = optionsList.children.length + 1;
                             const optionItem = document.createElement('div');
                             optionItem.className = 'option-item flex items-center gap-2';
@@ -546,8 +552,9 @@
                             btn.addEventListener('click', function() {
                                 const optionItem = btn.closest('.option-item');
                                 optionItem.remove();
-                                // 更新选项编号
-                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                const idx = addOptionBtn.dataset.fieldIndex;
+                                const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                                if (!optionsList) return;
                                 const optionItems = optionsList.querySelectorAll('.option-item');
                                 optionItems.forEach((item, index) => {
                                     item.querySelector('input').value = `选项${index + 1}`;
@@ -905,8 +912,14 @@
                                         
                                         // 添加选项按钮点击事件
                                         const addOptionBtn = optionsDiv.querySelector('.add-option');
+                                        addOptionBtn.dataset.fieldIndex = fieldCount;
                                         addOptionBtn.addEventListener('click', function() {
-                                            const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                            const idx = this.dataset.fieldIndex;
+                                            const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                                            if (!optionsList) {
+                                                console.error('[工作流] 未找到选项列表容器 #options-list-' + idx);
+                                                return;
+                                            }
                                             const optionCount = optionsList.children.length + 1;
                                             const optionItem = document.createElement('div');
                                             optionItem.className = 'option-item flex items-center gap-2';
@@ -937,8 +950,9 @@
                                             btn.addEventListener('click', function() {
                                                 const optionItem = btn.closest('.option-item');
                                                 optionItem.remove();
-                                                // 更新选项编号
-                                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                const idx = addOptionBtn.dataset.fieldIndex;
+                                                const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                                                if (!optionsList) return;
                                                 const optionItems = optionsList.querySelectorAll('.option-item');
                                                 optionItems.forEach((item, index) => {
                                                     item.querySelector('input').value = `选项${index + 1}`;
@@ -1022,8 +1036,14 @@
                                             
                                             // 添加选项按钮点击事件
                                             const addOptionBtn = optionsDiv.querySelector('.add-option');
+                                            addOptionBtn.dataset.fieldIndex = fieldCount;
                                             addOptionBtn.addEventListener('click', function() {
-                                                const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                const idx = this.dataset.fieldIndex;
+                                                const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                                                if (!optionsList) {
+                                                    console.error('[工作流] 未找到选项列表容器 #options-list-' + idx);
+                                                    return;
+                                                }
                                                 const optionCount = optionsList.children.length + 1;
                                                 const optionItem = document.createElement('div');
                                                 optionItem.className = 'option-item flex items-center gap-2';
@@ -1054,8 +1074,9 @@
                                                 btn.addEventListener('click', function() {
                                                     const optionItem = btn.closest('.option-item');
                                                     optionItem.remove();
-                                                    // 更新选项编号
-                                                    const optionsList = optionsDiv.querySelector(`#options-list-${fieldCount}`);
+                                                    const idx = addOptionBtn.dataset.fieldIndex;
+                                                    const optionsList = optionsDiv.querySelector(`#options-list-${idx}`);
+                                                    if (!optionsList) return;
                                                     const optionItems = optionsList.querySelectorAll('.option-item');
                                                     optionItems.forEach((item, index) => {
                                                         item.querySelector('input').value = `选项${index + 1}`;
