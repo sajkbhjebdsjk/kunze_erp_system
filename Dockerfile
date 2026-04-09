@@ -21,8 +21,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
     pkg-config \
     fontconfig \
-    fonts-noto-cjk-extra \
+    fonts-wqy-zenhei \
+    wget \
     && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/backend/fonts \
+    && wget -q --timeout=30 -O /app/backend/fonts/NotoSansSC-Regular.ttf \
+       "https://raw.githubusercontent.com/AaronFeng753/chinese-fonts/main/fonts/simsun.ttf" \
+    || echo "[WARN] Font download failed, will use system fonts" \
     && fc-cache -fv
 
 # 复制依赖文件并安装Python包（包含 gunicorn）

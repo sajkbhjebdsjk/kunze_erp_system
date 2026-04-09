@@ -51,44 +51,53 @@ def register_chinese_font():
         ]
     else:
         font_candidates = [
-            '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-            '/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf',
-            '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+            os.path.join(BASE_DIR, 'fonts', 'NotoSansSC-Regular.ttf'),
+            '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttf',
+            '/usr/share/fonts/truetype/arphic/uming.ttc',
             '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
-            '/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf',
-            os.path.join(BASE_DIR, 'fonts', 'NotoSansSC-Regular.otf'),
+            '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+            '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
         ]
 
     for font_path in font_candidates:
-        if os.path.exists(font_path):
-            try:
-                if font_path.endswith('.ttc'):
-                    pdfmetrics.registerFont(TTFont('SimSun', font_path, subfontIndex=0))
-                else:
-                    pdfmetrics.registerFont(TTFont('SimSun', font_path))
-                print(f'[PDF字体] 注册成功: {font_path}')
-                return True
-            except Exception as e:
-                print(f'[PDF字体] 注册失败 {font_path}: {e}')
-                continue
+        if not os.path.exists(font_path):
+            continue
+        try:
+            print(f'[PDF字体] 尝试注册: {font_path} ({os.path.getsize(font_path)} bytes)')
+            if font_path.endswith('.ttc'):
+                pdfmetrics.registerFont(TTFont('SimSun', font_path, subfontIndex=0))
+            else:
+                pdfmetrics.registerFont(TTFont('SimSun', font_path))
+            print(f'[PDF字体] 注册成功: {font_path}')
+            return True
+        except Exception as e:
+            print(f'[PDF字体] 注册失败 {font_path}: {e}')
+            continue
 
-    print(f'[PDF字体] 警告: 未找到中文字体! 系统={system}, 搜索了{len(font_candidates)}个路径')
+    print(f'[PDF字体] 警告: 未找到可用中文字体! 系统={system}, 搜索了{len(font_candidates)}个路径')
     for fp in font_candidates:
         exists = os.path.exists(fp)
-        print(f'  {"✓" if exists else "✗"} {fp}')
+        size = os.path.getsize(fp) if exists else 0
+        print(f'  {"✓" if exists else "✗"} {fp} ({size} bytes)')
 
     if system != 'Windows':
         try:
-            download_path = os.path.join(os.path.dirname(__file__), 'fonts', 'NotoSansSC-Regular.otf')
-            os.makedirs(os.path.dirname(download_path), exist_ok=True)
+            download_dir = os.path.join(os.path.dirname(__file__), 'fonts')
+            os.makedirs(download_dir, exist_ok=True)
+            download_path = os.path.join(download_dir, 'NotoSansSC-Regular.ttf')
             print(f'[PDF字体] 尝试自动下载中文字体...')
             font_urls = [
-                'https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf',
-                'https://cdn.jsdelivr.net/npm/@aspect-build/rules@0.20.0/fonts/noto-sans-sc-regular.otf',
+                'https://raw.githubusercontent.com/AaronFeng753/chinese-fonts/main/fonts/simsun.ttf',
+                'https://raw.githubusercontent.com/AaronFeng753/chinese-fonts/main/fonts/simhei.ttf',
+                'https://github.com/AaronFeng753/chinese-fonts/raw/main/fonts/simsun.ttf',
             ]
             for font_url in font_urls:
                 try:
-                    urllib.request.urlretrieve(font_url, download_path)
+                    req = urllib.request.Request(font_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    resp = urllib.request.urlopen(req, timeout=30)
+                    data = resp.read()
+                    with open(download_path, 'wb') as f:
+                        f.write(data)
                     if os.path.getsize(download_path) > 10000:
                         pdfmetrics.registerFont(TTFont('SimSun', download_path))
                         print(f'[PDF字体] 下载并注册成功: {os.path.getsize(download_path)} bytes from {font_url}')
