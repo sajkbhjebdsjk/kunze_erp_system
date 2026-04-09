@@ -563,7 +563,7 @@ def approve_flow(flow_id):
         cursor = conn.cursor()
         
         # 获取流程ID
-        cursor.execute('SELECT id, status, current_node FROM flows WHERE flow_id = %s', (flow_id,))
+        cursor.execute('SELECT id, status, current_node, type_id FROM flows WHERE flow_id = %s', (flow_id,))
         flow = cursor.fetchone()
         if not flow:
             return jsonify({'error': '流程不存在'}), 404
@@ -677,23 +677,47 @@ def approve_flow(flow_id):
                         # 获取骑手风神ID
                         rider_id = field_data.get('骑手风神ID', field_data.get('风神ID', f"R{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"))
                         
-                        # 处理工作性质
+                        # 处理工作性质 - 多重判断策略
                         work_nature = '全职'
-                        # 获取流程架构信息，判断是全职还是兼职
-                        # 直接查询所有流程架构，根据流程名称判断
-                        cursor.execute('''
-                            SELECT flow_name 
-                            FROM flow_architectures 
-                            WHERE flow_type = '入职流程'
-                        ''')
-                        flow_architectures = cursor.fetchall()
-                        # 遍历所有流程架构，检查当前流程节点是否包含架构名称
-                        for arch in flow_architectures:
-                            flow_name = arch[0]
-                            if flow_name in flow[2]:  # flow[2]是current_node字段
-                                if '兼职' in flow_name:
-                                    work_nature = '兼职'
+                        
+                        # 策略1: 检查表单字段数据中是否有工作性质字段
+                        fn_candidates = ['工作性质', '用工类型', 'employment_type', 'work_nature']
+                        for fn_key in fn_candidates:
+                            fn_val = field_data.get(fn_key, '')
+                            if fn_val and '兼职' in str(fn_val):
+                                work_nature = '兼职'
+                                print(f'[入职-DEBUG] 通过字段[{fn_key}]={fn_val}判定为兼职')
                                 break
+                        
+                        # 策略2: 如果策略1未判定为兼职，通过type_id查找flow_type名称
+                        if work_nature == '全职':
+                            cursor.execute('SELECT name FROM flow_types WHERE id = %s', (flow[3],))
+                            ft_result = cursor.fetchone()
+                            if ft_result and ft_result[0] and '兼职' in str(ft_result[0]):
+                                work_nature = '兼职'
+                                print(f'[入职-DEBUG] 通过flow_type名称[{ft_result[0]}]判定为兼职')
+                        
+                        # 策略3: 如果仍未判定，通过flow_architecture名称判断（改进版）
+                        if work_nature == '全职':
+                            cursor.execute('''
+                                SELECT fa.flow_name 
+                                FROM flow_architectures fa
+                                JOIN flow_types ft ON fa.flow_type = ft.name
+                                WHERE ft.id = %s
+                            ''', (flow[3],))
+                            arch_result = cursor.fetchone()
+                            if arch_result and arch_result[0] and '兼职' in str(arch_result[0]):
+                                work_nature = '兼职'
+                                print(f'[入职-DEBUG] 通过flow_architecture名称[{arch_result[0]}]判定为兼职')
+                        
+                        # 策略4: 最后兜底，检查薪资方案是否包含"兼职"
+                        if work_nature == '全职':
+                            salary_plan = field_data.get('薪资方案', field_data.get('薪资方案绑定', ''))
+                            if salary_plan and '兼职' in str(salary_plan):
+                                work_nature = '兼职'
+                                print(f'[入职-DEBUG] 通过薪资方案[{salary_plan}]判定为兼职')
+                        
+                        print(f'[入职-DEBUG] 最终work_nature={work_nature}, flow_id={flow[0]}, field_data_keys={list(field_data.keys())}')
                         
                         # 从身份证号提取出生日期
                         def extract_birth_date_from_id_card(id_card):

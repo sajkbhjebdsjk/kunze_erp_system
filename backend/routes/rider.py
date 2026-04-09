@@ -120,14 +120,19 @@ def get_riders():
             id_card = rider.get('id_card')
             if id_card:
                 rider['contract_status'] = contract_status_map.get(id_card, '未签订')
-            
-            # 根据离职时间和离岗时间判定岗位状态
+
+            for key, val in list(rider.items()):
+                if hasattr(val, '__trunc__') and not isinstance(val, (int, float, str, bool, type(None))):
+                    rider[key] = int(val) if val == int(val) else float(val)
+
             exit_date = rider.get('exit_date')
             leave_date = rider.get('leave_date')
             if exit_date and leave_date:
                 try:
-                    exit_date_obj = datetime.strptime(str(exit_date), '%Y-%m-%d')
-                    leave_date_obj = datetime.strptime(str(leave_date), '%Y-%m-%d')
+                    exit_date_str = str(exit_date)[:10]
+                    leave_date_str = str(leave_date)[:10]
+                    exit_date_obj = datetime.strptime(exit_date_str, '%Y-%m-%d')
+                    leave_date_obj = datetime.strptime(leave_date_str, '%Y-%m-%d')
                     # 待离职判定：离岗日期大于离职日期
                     if leave_date_obj > exit_date_obj:
                         rider['position_status'] = '待离职'
