@@ -691,7 +691,7 @@ def approve_flow(flow_id):
                         
                         # 策略2: 如果策略1未判定为兼职，通过type_id查找flow_type名称
                         if work_nature == '全职':
-                            cursor.execute('SELECT name FROM flow_types WHERE id = %s', (flow[3],))
+                            cursor.execute('SELECT type_name FROM flow_types WHERE type_id = %s', (flow[3],))
                             ft_result = cursor.fetchone()
                             if ft_result and ft_result[0] and '兼职' in str(ft_result[0]):
                                 work_nature = '兼职'
