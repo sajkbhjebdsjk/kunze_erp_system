@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
+    fontconfig \
     fonts-noto-cjk-extra \
     && rm -rf /var/lib/apt/lists/* \
     && fc-cache -fv
