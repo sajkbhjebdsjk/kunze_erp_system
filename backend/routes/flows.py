@@ -697,18 +697,19 @@ def approve_flow(flow_id):
                                 work_nature = '兼职'
                                 print(f'[入职-DEBUG] 通过flow_type名称[{ft_result[0]}]判定为兼职')
                         
-                        # 策略3: 如果仍未判定，通过flow_architecture名称判断（改进版）
+                        # 策略3: 如果仍未判定，通过flow_architecture名称判断
                         if work_nature == '全职':
                             cursor.execute('''
-                                SELECT fa.flow_name 
-                                FROM flow_architectures fa
-                                JOIN flow_types ft ON fa.flow_type = ft.name
-                                WHERE ft.id = %s
-                            ''', (flow[3],))
-                            arch_result = cursor.fetchone()
-                            if arch_result and arch_result[0] and '兼职' in str(arch_result[0]):
-                                work_nature = '兼职'
-                                print(f'[入职-DEBUG] 通过flow_architecture名称[{arch_result[0]}]判定为兼职')
+                                SELECT flow_name 
+                                FROM flow_architectures 
+                                WHERE flow_type = %s
+                            ''', (flow[2],))
+                            arch_results = cursor.fetchall()
+                            for arch_row in arch_results:
+                                if arch_row[0] and '兼职' in str(arch_row[0]):
+                                    work_nature = '兼职'
+                                    print(f'[入职-DEBUG] 通过flow_architecture名称[{arch_row[0]}]判定为兼职')
+                                    break
                         
                         # 策略4: 最后兜底，检查薪资方案是否包含"兼职"
                         if work_nature == '全职':
