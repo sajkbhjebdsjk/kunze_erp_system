@@ -125,11 +125,15 @@ def setup_security_headers(app):
         if not response.headers.get('Content-Type') or 'text/html' not in response.headers.get('Content-Type', ''):
             # 检查是否是 HTML 内容（通过 URL 或内容判断）
             from flask import request
-            if (request.path.endswith('.html') or 
-                request.path == '/' or 
-                (response.data and b'<html' in response.data[:200].lower())):
-                response.headers['Content-Type'] = 'text/html; charset=utf-8'
-        
+            try:
+                is_html = (request.path.endswith('.html') or
+                    request.path == '/' or
+                    (response.direct_passthrough is False and response.data and b'<html' in response.data[:200].lower()))
+                if is_html:
+                    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+            except (RuntimeError, TypeError):
+                pass
+
         for header, value in SecurityConfig.SECURITY_HEADERS.items():
             response.headers[header] = value
         return response

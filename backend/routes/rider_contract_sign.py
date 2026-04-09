@@ -1019,10 +1019,19 @@ def get_contract_stats():
             SUM(CASE WHEN pdf_path IS NOT NULL AND pdf_path!='' THEN 1 ELSE 0 END) as pdf_generated_count FROM rider_contracts""")
         total_stats = cursor.fetchone()
 
+        print(f'[STATS-DEBUG] total_stats={total_stats}')
+
+        if total_stats:
+            for k, v in total_stats.items():
+                if hasattr(v, '__trunc__'):
+                    total_stats[k] = int(v)
+
         cursor.close()
         conn.close()
         return jsonify({'success': True, 'daily_stats': daily_stats, 'total_stats': total_stats})
     except Exception as e:
+        import traceback
+        print(f'[STATS-ERROR] {e}\n{traceback.format_exc()}')
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @rider_contract_bp.route('/api/rider-contracts/<int:contract_id>', methods=['DELETE'])
