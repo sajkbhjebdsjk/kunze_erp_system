@@ -15,12 +15,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # 设置工作目录为项目根目录
 WORKDIR /app
 
-# 安装系统依赖
+# 安装系统依赖（包含中文字体支持）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    fonts-noto-cjk-extra \
+    && rm -rf /var/lib/apt/lists/* \
+    && fc-cache -fv
 
 # 复制依赖文件并安装Python包（包含 gunicorn）
 COPY requirements.txt .

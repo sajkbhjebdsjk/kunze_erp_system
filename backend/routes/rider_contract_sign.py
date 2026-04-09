@@ -33,17 +33,32 @@ for folder in [UPLOAD_FOLDER, SIGNATURE_FOLDER, PDF_FOLDER]:
         os.makedirs(folder)
 
 def register_chinese_font():
+    import platform
+    system = platform.system()
+
     try:
         pdfmetrics.getFont('SimSun')
         return True
     except:
         pass
-    font_candidates = [
-        r'C:\Windows\Fonts\simsun.ttc',
-        r'C:\Windows\Fonts\simhei.ttf',
-        r'C:\Windows\Fonts\msyh.ttc',
-        r'C:\Windows\Fonts\msyh.ttf',
-    ]
+
+    if system == 'Windows':
+        font_candidates = [
+            r'C:\Windows\Fonts\simsun.ttc',
+            r'C:\Windows\Fonts\simhei.ttf',
+            r'C:\Windows\Fonts\msyh.ttc',
+            r'C:\Windows\Fonts\msyh.ttf',
+        ]
+    else:
+        font_candidates = [
+            '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+            '/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf',
+            '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+            '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
+            '/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf',
+            os.path.join(BASE_DIR, 'fonts', 'NotoSansSC-Regular.otf'),
+        ]
+
     for font_path in font_candidates:
         if os.path.exists(font_path):
             try:
@@ -51,9 +66,33 @@ def register_chinese_font():
                     pdfmetrics.registerFont(TTFont('SimSun', font_path, subfontIndex=0))
                 else:
                     pdfmetrics.registerFont(TTFont('SimSun', font_path))
+                print(f'[PDF字体] 注册成功: {font_path}')
                 return True
-            except Exception:
+            except Exception as e:
+                print(f'[PDF字体] 注册失败 {font_path}: {e}')
                 continue
+
+    print(f'[PDF字体] 警告: 未找到中文字体! 系统={system}, 搜索了{len(font_candidates)}个路径')
+    for fp in font_candidates:
+        exists = os.path.exists(fp)
+        print(f'  {"✓" if exists else "✗"} {fp}')
+
+    if system != 'Windows':
+        try:
+            download_path = os.path.join(os.path.dirname(__file__), 'fonts', 'NotoSansSC-Regular.otf')
+            os.makedirs(os.path.dirname(download_path), exist_ok=True)
+            print(f'[PDF字体] 尝试自动下载中文字体...')
+            urllib.request.urlretrieve(
+                'https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf',
+                download_path
+            )
+            if os.path.getsize(download_path) > 10000:
+                pdfmetrics.registerFont(TTFont('SimSun', download_path))
+                print(f'[PDF字体] 下载并注册成功: {os.path.getsize(download_path)} bytes')
+                return True
+        except Exception as e:
+            print(f'[PDF字体] 自动下载失败: {e}')
+
     return False
 
 def save_signature_image(signature_base64_data):
