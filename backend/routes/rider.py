@@ -174,12 +174,23 @@ def get_rider(rider_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        
-        query = "SELECT * FROM riders WHERE rider_id = %s"
+
+        query = """SELECT r.*, 
+                         s.id as station_id, 
+                         s.city_code as city,
+                         c.city_name 
+                  FROM riders r 
+                  LEFT JOIN stations s ON r.station_name = s.station_name 
+                  LEFT JOIN cities c ON s.city_code = c.city_code 
+                  WHERE r.rider_id = %s"""
         cursor.execute(query, (rider_id,))
         rider = cursor.fetchone()
-        
+
         if rider:
+            for key, val in list(rider.items()):
+                if hasattr(val, '__trunc__') and not isinstance(val, (int, float, str, bool, type(None))):
+                    rider[key] = int(val) if val == int(val) else float(val)
+
             # 更新合同状态（优先从骑手合同签署表查询）
             id_card = rider.get('id_card')
             if id_card:
@@ -216,8 +227,10 @@ def get_rider(rider_id):
             leave_date = rider.get('leave_date')
             if exit_date and leave_date:
                 try:
-                    exit_date_obj = datetime.strptime(str(exit_date), '%Y-%m-%d')
-                    leave_date_obj = datetime.strptime(str(leave_date), '%Y-%m-%d')
+                    exit_date_str = str(exit_date)[:10]
+                    leave_date_str = str(leave_date)[:10]
+                    exit_date_obj = datetime.strptime(exit_date_str, '%Y-%m-%d')
+                    leave_date_obj = datetime.strptime(leave_date_str, '%Y-%m-%d')
                     # 待离职判定：离岗日期大于离职日期
                     if leave_date_obj > exit_date_obj:
                         rider['position_status'] = '待离职'
