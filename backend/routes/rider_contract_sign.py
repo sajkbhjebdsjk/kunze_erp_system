@@ -15,7 +15,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from PIL import Image as PILImage
 import html
 import re
-
+import urllib
 rider_contract_bp = Blueprint('rider_contract', __name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
