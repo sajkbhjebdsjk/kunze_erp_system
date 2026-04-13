@@ -1071,58 +1071,123 @@ document.addEventListener('DOMContentLoaded', function() {
         // 创建文件上传输入框
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.csv';
+        input.accept = '.csv,.xlsx,.xls';  // 支持Excel和CSV格式
         input.style.display = 'none';
         document.body.appendChild(input);
-        
+
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
-            const reader = new FileReader();
-            // 尝试使用不同编码读取文件
-            const readerUTF8 = new FileReader();
-            readerUTF8.onload = function(e) {
-                let csvContent = e.target.result;
-                console.log('UTF-8 CSV内容:', csvContent);
-                
-                // 检查是否有乱码（简单检测：是否包含大量�字符）
-                const hasGarbled = (csvContent.match(/�/g) || []).length > 5;
-                
-                if (hasGarbled) {
-                    // 尝试使用GBK编码读取
-                    const readerGBK = new FileReader();
-                    readerGBK.onload = function(e) {
-                        const arrayBuffer = e.target.result;
-                        const decoder = new TextDecoder('gbk');
-                        csvContent = decoder.decode(arrayBuffer);
-                        console.log('GBK CSV内容:', csvContent);
-                        processCSV(csvContent);
-                    };
-                    readerGBK.readAsArrayBuffer(file);
-                } else {
-                    processCSV(csvContent);
-                }
-            };
-            
-            function processCSV(csvContent) {
-                const riders = parseCSV(csvContent);
-                console.log('解析后的数据:', riders);
-                
-                if (riders.length === 0) {
-                    alert('解析失败，文件格式不正确');
-                    return;
-                }
-                
-                // 上传数据到服务器
-                uploadRiders(riders);
+
+            console.log('[导入] 文件名:', file.name, '文件类型:', file.type, '文件大小:', file.size);
+
+            // 获取文件扩展名
+            const fileName = file.name.toLowerCase();
+            const isExcelFile = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+            const isCSVFile = fileName.endsWith('.csv');
+
+            if (isExcelFile) {
+                // 使用SheetJS解析Excel文件
+                console.log('[导入] 检测到Excel文件，使用SheetJS解析');
+                parseExcelFile(file);
+            } else if (isCSVFile) {
+                // 使用文本方式解析CSV文件
+                console.log('[导入] 检测到CSV文件，使用文本解析');
+                parseCSVFile(file);
+            } else {
+                alert('不支持的文件格式，请上传 .xlsx, .xls 或 .csv 文件');
             }
-            
-            readerUTF8.readAsText(file, 'UTF-8');
+
             document.body.removeChild(input);
         });
-        
+
         input.click();
+    }
+
+    // 解析Excel文件（使用SheetJS）
+    function parseExcelFile(file) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // 获取第一个工作表
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // 将工作表转换为JSON数组
+                const riders = XLSX.utils.sheet_to_json(worksheet);
+
+                console.log('[Excel解析] 成功解析Excel文件');
+                console.log('[Excel解析] 工作表名称:', firstSheetName);
+                console.log('[Excel解析] 解析后的数据:', riders);
+                console.log('[Excel解析] 数据条数:', riders.length);
+
+                if (riders.length === 0) {
+                    alert('Excel文件中没有数据');
+                    return;
+                }
+
+                // 上传数据到服务器
+                uploadRiders(riders);
+            } catch (error) {
+                console.error('[Excel解析错误]', error);
+                alert('Excel文件解析失败: ' + error.message);
+            }
+        };
+
+        reader.onerror = function(error) {
+            console.error('[文件读取错误]', error);
+            alert('文件读取失败');
+        };
+
+        // 以ArrayBuffer方式读取二进制文件
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 解析CSV文件（文本方式）
+    function parseCSVFile(file) {
+        const readerUTF8 = new FileReader();
+        readerUTF8.onload = function(e) {
+            let csvContent = e.target.result;
+            console.log('UTF-8 CSV内容前200字符:', csvContent.substring(0, 200));
+
+            // 检查是否有乱码（简单检测：是否包含大量�字符）
+            const hasGarbled = (csvContent.match(/�/g) || []).length > 5;
+
+            if (hasGarbled) {
+                // 尝试使用GBK编码读取
+                const readerGBK = new FileReader();
+                readerGBK.onload = function(e) {
+                    const arrayBuffer = e.target.result;
+                    const decoder = new TextDecoder('gbk');
+                    csvContent = decoder.decode(arrayBuffer);
+                    console.log('GBK CSV内容:', csvContent.substring(0, 200));
+                    processCSVContent(csvContent);
+                };
+                readerGBK.readAsArrayBuffer(file);
+            } else {
+                processCSVContent(csvContent);
+            }
+        };
+
+        function processCSVContent(csvContent) {
+            const riders = parseCSV(csvContent);
+            console.log('[CSV解析] 解析后的数据:', riders);
+            console.log('[CSV解析] 数据条数:', riders.length);
+
+            if (riders.length === 0) {
+                alert('解析失败，文件格式不正确');
+                return;
+            }
+
+            // 上传数据到服务器
+            uploadRiders(riders);
+        }
+
+        readerUTF8.readAsText(file, 'UTF-8');
     }
     
     // 从身份证号提取出生日期
