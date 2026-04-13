@@ -1241,29 +1241,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 绘制运力分析图
     function drawRiderAnalysisCharts(overviewData) {
-        // 准备数据
+        if (!overviewData || overviewData.length === 0) {
+            console.log('[图表] 无运力总览数据，跳过绘制');
+            return;
+        }
+
         const stationNames = overviewData.map(item => item.station_name);
         const riderCounts = overviewData.map(item => item.rider_count);
         const scaleRatios = overviewData.map(item => item.scale_ratio);
         const partTimeRatios = overviewData.map(item => item.part_time_ratio);
         const attendances = overviewData.map(item => item.today_attendance);
-        
+
+        function safeGetContext(id) {
+            const el = document.getElementById(id);
+            if (!el) { console.warn(`[图表] 未找到canvas元素: ${id}`); return null; }
+            return el.getContext('2d');
+        }
+
         // 销毁旧图表
-        if (charts.riderCountChart) {
-            charts.riderCountChart.destroy();
-        }
-        if (charts.scaleRatioChart) {
-            charts.scaleRatioChart.destroy();
-        }
-        if (charts.partTimeRatioChart) {
-            charts.partTimeRatioChart.destroy();
-        }
-        if (charts.attendanceChart) {
-            charts.attendanceChart.destroy();
-        }
-        
+        Object.keys(charts).forEach(key => { if (charts[key] && typeof charts[key].destroy === 'function') charts[key].destroy(); });
+
         // 骑手数图表
-        const riderCountCtx = document.getElementById('riderCountChart').getContext('2d');
+        const riderCountCtx = safeGetContext('riderCountChart');
+        if (riderCountCtx && riderCounts.length > 0) {
         charts.riderCountChart = new Chart(riderCountCtx, {
             type: 'bar',
             data: {
@@ -1286,9 +1286,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
+
         // 规模占比图表
-        const scaleRatioCtx = document.getElementById('scaleRatioChart').getContext('2d');
+        const scaleRatioCtx = safeGetContext('scaleRatioChart');
+        if (scaleRatioCtx) {
         charts.scaleRatioChart = new Chart(scaleRatioCtx, {
             type: 'bar',
             data: {
@@ -1301,66 +1302,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     borderWidth: 1
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });
-        
+        }
+
         // 兼职骑手占比图表
-        const partTimeRatioCtx = document.getElementById('partTimeRatioChart').getContext('2d');
+        const partTimeRatioCtx = safeGetContext('partTimeRatioChart');
+        if (partTimeRatioCtx) {
         charts.partTimeRatioChart = new Chart(partTimeRatioCtx, {
             type: 'bar',
             data: {
                 labels: stationNames,
-                datasets: [{
-                    label: '兼职骑手占比 (%)',
-                    data: partTimeRatios,
-                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
+                datasets: [{ label: '兼职骑手占比 (%)', data: partTimeRatios, backgroundColor: 'rgba(255, 206, 86, 0.6)', borderColor: 'rgba(255, 206, 86, 1)', borderWidth: 1 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });
-        
+        }
+
         // 今日出勤骑手数图表
-        const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceCtx = safeGetContext('attendanceChart');
+        if (attendanceCtx) {
         charts.attendanceChart = new Chart(attendanceCtx, {
             type: 'bar',
             data: {
                 labels: stationNames,
-                datasets: [{
-                    label: '今日出勤骑手数',
-                    data: attendances,
-                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
+                datasets: [{ label: '今日出勤骑手数', data: attendances, backgroundColor: 'rgba(153, 102, 255, 0.6)', borderColor: 'rgba(153, 102, 255, 1)', borderWidth: 1 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
             }
         });
     }
