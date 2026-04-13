@@ -570,6 +570,52 @@ def batch_create_riders():
                 return None if val == '' else val
             return val
 
+        def convert_excel_date(excel_date):
+            """
+            将Excel日期序列号转换为标准日期字符串 YYYY-MM-DD
+            Excel日期是从1900-01-01开始计算的天数（注意：Excel错误地将1900年当作闰年）
+            """
+            if excel_date is None:
+                return None
+
+            # 如果已经是字符串格式，尝试直接返回
+            if isinstance(excel_date, str):
+                excel_date = excel_date.strip()
+                if excel_date == '':
+                    return None
+                # 检查是否是有效的日期字符串
+                try:
+                    # 尝试解析各种日期格式
+                    for fmt in ['%Y-%m-%d', '%Y/%m/%d', '%Y.%m.%d', '%Y%m%d']:
+                        try:
+                            parsed = datetime.strptime(excel_date, fmt)
+                            return parsed.strftime('%Y-%m-%d')
+                        except ValueError:
+                            continue
+                    return excel_date  # 如果无法解析，原样返回
+                except:
+                    return excel_date
+
+            # 处理数字类型的Excel日期序列号
+            try:
+                excel_date_num = float(excel_date)
+
+                # Excel日期序列号通常在1-60000之间（1900年到2078年）
+                if 1 <= excel_date_num <= 60000:
+                    # Excel的基准日期是1899-12-30（修正了闰年bug）
+                    from datetime import timedelta
+                    base_date = datetime(1899, 12, 30)
+                    result_date = base_date + timedelta(days=int(excel_date_num))
+                    print(f'[DATE-CONVERT] Excel序列号 {excel_date_num} → {result_date.strftime("%Y-%m-%d")}')
+                    return result_date.strftime('%Y-%m-%d')
+                else:
+                    # 数字太小或太大，不是日期
+                    print(f'[DATE-WARN] 数值 {excel_date_num} 不在有效日期范围内')
+                    return None
+            except (ValueError, TypeError) as e:
+                print(f'[DATE-ERROR] 无法转换日期值: {excel_date}, 错误: {e}')
+                return None
+
         for batch_start in range(0, len(riders), BATCH_SIZE):
             batch = riders[batch_start:batch_start + BATCH_SIZE]
             values = []
@@ -582,7 +628,11 @@ def batch_create_riders():
                 name = clean_value(rider.get('姓名') or rider.get('name'))
                 phone = clean_value(rider.get('手机号') or rider.get('phone'))
                 station_name = clean_value(rider.get('站点名称') or rider.get('station_name'))
-                entry_date = clean_value(rider.get('入职日期') or rider.get('entry_date'))
+
+                # 转换Excel日期格式（支持序列号和字符串）
+                entry_date_raw = rider.get('入职日期') or rider.get('entry_date')
+                entry_date = convert_excel_date(entry_date_raw)
+
                 work_nature = clean_value(rider.get('工作性质') or rider.get('work_nature'))
                 id_card = clean_value(rider.get('身份证号') or rider.get('id_card'))
 
@@ -622,9 +672,11 @@ def batch_create_riders():
                     except:
                         return None
 
-                first_run_date = clean_value(rider.get('首跑日期') or rider.get('first_run_date'))
+                first_run_date_raw = rider.get('首跑日期') or rider.get('first_run_date')
+                first_run_date = convert_excel_date(first_run_date_raw)
 
-                birth_date = clean_value(rider.get('出生日期') or rider.get('birth_date'))
+                birth_date_raw = rider.get('出生日期') or rider.get('birth_date')
+                birth_date = convert_excel_date(birth_date_raw)
                 if (not birth_date):
                     birth_date = extract_birth_date_from_id_card(id_card)
 
