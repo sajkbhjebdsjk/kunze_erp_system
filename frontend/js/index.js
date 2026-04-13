@@ -1000,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 导出骑手数据
     function exportRiderData() {
         // 从API获取骑手数据
-        fetch('${window.API_BASE_URL}/api/riders')
+        fetch(`${window.API_BASE_URL}/api/riders`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -1577,7 +1577,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 上传骑手数据
     function uploadRiders(riders) {
         // 上传数据到服务器
-        fetch('${window.API_BASE_URL}/api/riders/batch', {
+        fetch(`${window.API_BASE_URL}/api/riders/batch`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
