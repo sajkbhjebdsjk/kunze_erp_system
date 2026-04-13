@@ -1330,8 +1330,6 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
-            }
-        });
     }
     
     // 绑定筛选器事件
