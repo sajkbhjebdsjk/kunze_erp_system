@@ -537,6 +537,51 @@ def batch_create_riders():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # 预处理：收集所有站点名称，自动创建缺失的站点
+        station_set = set()
+        for rider in riders:
+            station = rider.get('站点名称') or rider.get('station_name')
+            if station and str(station).strip():
+                station_set.add(str(station).strip())
+
+        if station_set:
+            # 检查哪些站点不存在
+            placeholders = ','.join(['%s'] * len(station_set))
+            cursor.execute(f"""
+                SELECT station_name FROM stations WHERE station_name IN ({placeholders})
+            """, list(station_set))
+            existing_stations = {row[0] for row in cursor.fetchall()}
+            missing_stations = station_set - existing_stations
+
+            # 自动创建缺失的站点
+            city_mapping = {
+                '杭州': 'hangzhou',
+                '武汉': 'wuhan',
+                '沈阳': 'shenyang',
+                '金华': 'jinhua',
+                '绍兴': 'shaoxing'
+            }
+
+            for missing_station in missing_stations:
+                # 根据站点名称推断城市代码
+                city_code = 'all'  # 默认值
+                for city_name, code in city_mapping.items():
+                    if city_name in missing_station:
+                        city_code = code
+                        break
+
+                try:
+                    cursor.execute("""
+                        INSERT INTO stations (station_id, station_name, city_code, area_manager)
+                        VALUES (%s, %s, %s, %s)
+                    """, (f'ST_{missing_station[:10]}_{datetime.now().strftime("%H%M%S")}',
+                          missing_station, city_code, '系统导入'))
+                    print(f'[BATCH-STATION] 自动创建站点: {missing_station} (城市: {city_code})')
+                except Exception as e:
+                    print(f'[BATCH-STATION-WARN] 创建站点失败: {missing_station}, 错误: {e}')
+
+            conn.commit()
+
         query = """
         INSERT INTO riders (
             rider_id, name, phone, station_name, first_run_date, entry_date,
@@ -655,6 +700,11 @@ def batch_create_riders():
                     work_nature = '兼职'
                     print(f'[BATCH-WARN] 第{global_index + 2}行: 工作性质为空，默认设为兼职')
 
+                # 身份证号为空时使用默认值（数据库NOT NULL约束）
+                if not id_card:
+                    id_card = f'TEMP_{rider_id}_{datetime.now().strftime("%Y%m%d%H%M%S")}'
+                    print(f'[BATCH-WARN] 第{global_index + 2}行: 身份证号为空，生成临时ID: {id_card}')
+
                 position_status = clean_value(rider.get('岗位状态') or rider.get('position_status')) or '在职'
 
                 def extract_birth_date_from_id_card(ic):
@@ -699,7 +749,8 @@ def batch_create_riders():
                     position_status,
                     clean_value(rider.get('人员标签') or rider.get('tags')),
                     clean_value(rider.get('备注') or rider.get('remark')),
-                    clean_value(rider.get('合同状态') or rider.get('contract_status'))
+                    # 合同状态默认为"未签署"，只有电子签完成后才变为"已签订"
+                    clean_value(rider.get('合同状态') or rider.get('contract_status')) or '未签订'
                 ))
 
             if values:
