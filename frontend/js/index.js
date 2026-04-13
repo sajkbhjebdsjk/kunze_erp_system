@@ -1399,19 +1399,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 绑定筛选器事件
-    function bindFilterEvents() {
+    // 绑定筛选器事件（运力总览页面专用）
+    function bindOverviewFilterEvents() {
         const searchBtn = document.querySelector('.btn-search');
         const resetBtn = document.querySelector('.btn-reset');
         const departmentSelect = document.getElementById('department-select');
-        
+
         if (searchBtn) {
             searchBtn.addEventListener('click', function() {
                 const stationName = departmentSelect.value;
                 loadRiderOverviewData(stationName);
             });
         }
-        
+
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
                 departmentSelect.value = '';
@@ -1425,19 +1425,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // 加载站点数据
         const selectedCity = localStorage.getItem('selectedCity') || 'all';
         loadStationData(selectedCity);
-        
+
         // 加载运力总览数据
         loadRiderOverviewData();
-        
-        // 绑定筛选器事件
-        bindFilterEvents();
-        
+
+        // 绑定筛选器事件（使用运力总览专用函数）
+        bindOverviewFilterEvents();
+
         // 绑定按钮事件
         bindRiderActionEvents();
-        
+
         // 更新数据时间
         updateDataTime();
-        
+
         // 设置自动数据更新（每20分钟）
         setInterval(() => {
             loadRiderOverviewData();

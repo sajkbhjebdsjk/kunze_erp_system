@@ -681,10 +681,17 @@ def batch_create_riders():
                 work_nature = clean_value(rider.get('工作性质') or rider.get('work_nature'))
                 id_card = clean_value(rider.get('身份证号') or rider.get('id_card'))
 
-                # 放宽验证：只检查核心必填字段
+                # 放宽验证：检查核心必填字段（包括身份证号）
                 if not all([rider_id, name, phone]):
                     print(f'[BATCH-SKIP] 第{global_index + 2}行: 缺少核心字段 (rider_id={rider_id}, name={name}, phone={phone})')
                     skipped_count += 1
+                    continue
+
+                # 身份证号为必填字段，不能为空
+                if not id_card:
+                    print(f'[BATCH-SKIP] 第{global_index + 2}行: 身份证号不能为空 (rider_id={rider_id}, name={name})')
+                    skipped_count += 1
+                    errors.append(f'第{global_index + 2}行: 身份证号不能为空')
                     continue
 
                 # 可选字段设置默认值
@@ -699,11 +706,6 @@ def batch_create_riders():
                 if not work_nature:
                     work_nature = '兼职'
                     print(f'[BATCH-WARN] 第{global_index + 2}行: 工作性质为空，默认设为兼职')
-
-                # 身份证号为空时使用默认值（数据库NOT NULL约束）
-                if not id_card:
-                    id_card = f'TEMP_{rider_id}_{datetime.now().strftime("%Y%m%d%H%M%S")}'
-                    print(f'[BATCH-WARN] 第{global_index + 2}行: 身份证号为空，生成临时ID: {id_card}')
 
                 position_status = clean_value(rider.get('岗位状态') or rider.get('position_status')) or '在职'
 
