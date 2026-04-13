@@ -529,6 +529,11 @@ def batch_create_riders():
 
         print(f'[BATCH] 开始批量导入，共 {len(riders)} 条数据')
 
+        # 调试日志：打印前3条数据结构
+        for i, rider in enumerate(riders[:3]):
+            print(f'[BATCH-DEBUG] 第{i+1}条数据字段: {list(rider.keys())}')
+            print(f'[BATCH-DEBUG] 第{i+1}条数据内容: {rider}')
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -553,7 +558,17 @@ def batch_create_riders():
 
         BATCH_SIZE = 50
         total_imported = 0
+        skipped_count = 0
         errors = []
+
+        def clean_value(val):
+            """清理值：空字符串转None，去除首尾空格"""
+            if val is None:
+                return None
+            if isinstance(val, str):
+                val = val.strip()
+                return None if val == '' else val
+            return val
 
         for batch_start in range(0, len(riders), BATCH_SIZE):
             batch = riders[batch_start:batch_start + BATCH_SIZE]
@@ -561,18 +576,36 @@ def batch_create_riders():
 
             for index, rider in enumerate(batch):
                 global_index = batch_start + index
-                rider_id = rider.get('骑手风神ID') or rider.get('rider_id')
-                name = rider.get('姓名') or rider.get('name')
-                phone = rider.get('手机号') or rider.get('phone')
-                station_name = rider.get('站点名称') or rider.get('station_name')
-                entry_date = rider.get('入职日期') or rider.get('entry_date')
-                work_nature = rider.get('工作性质') or rider.get('work_nature')
-                id_card = rider.get('身份证号') or rider.get('id_card')
-                position_status = rider.get('岗位状态') or rider.get('position_status')
 
-                if not all([rider_id, name, phone, station_name, entry_date, work_nature, id_card, position_status]):
-                    errors.append(f'第{global_index + 2}行: 缺少必填字段')
+                # 提取并清理字段值（支持中文和英文键名）
+                rider_id = clean_value(rider.get('骑手风神ID') or rider.get('rider_id'))
+                name = clean_value(rider.get('姓名') or rider.get('name'))
+                phone = clean_value(rider.get('手机号') or rider.get('phone'))
+                station_name = clean_value(rider.get('站点名称') or rider.get('station_name'))
+                entry_date = clean_value(rider.get('入职日期') or rider.get('entry_date'))
+                work_nature = clean_value(rider.get('工作性质') or rider.get('work_nature'))
+                id_card = clean_value(rider.get('身份证号') or rider.get('id_card'))
+
+                # 放宽验证：只检查核心必填字段
+                if not all([rider_id, name, phone]):
+                    print(f'[BATCH-SKIP] 第{global_index + 2}行: 缺少核心字段 (rider_id={rider_id}, name={name}, phone={phone})')
+                    skipped_count += 1
                     continue
+
+                # 可选字段设置默认值
+                if not station_name:
+                    station_name = '未知站点'
+                    print(f'[BATCH-WARN] 第{global_index + 2}行: 站点名称为空，使用默认值')
+
+                if not entry_date:
+                    entry_date = datetime.now().strftime('%Y-%m-%d')
+                    print(f'[BATCH-WARN] 第{global_index + 2}行: 入职日期为空，使用今天日期')
+
+                if not work_nature:
+                    work_nature = '兼职'
+                    print(f'[BATCH-WARN] 第{global_index + 2}行: 工作性质为空，默认设为兼职')
+
+                position_status = clean_value(rider.get('岗位状态') or rider.get('position_status')) or '在职'
 
                 def extract_birth_date_from_id_card(ic):
                     if not ic or len(str(ic).strip()) < 15:
@@ -589,38 +622,32 @@ def batch_create_riders():
                     except:
                         return None
 
-                first_run_date = rider.get('首跑日期') or rider.get('first_run_date')
-                if isinstance(first_run_date, str) and first_run_date.strip() == '':
-                    first_run_date = None
-                if isinstance(entry_date, str) and entry_date.strip() == '':
-                    entry_date = None
+                first_run_date = clean_value(rider.get('首跑日期') or rider.get('first_run_date'))
 
-                birth_date = rider.get('出生日期') or rider.get('birth_date')
-                if (not birth_date or (isinstance(birth_date, str) and birth_date.strip() == '')):
+                birth_date = clean_value(rider.get('出生日期') or rider.get('birth_date'))
+                if (not birth_date):
                     birth_date = extract_birth_date_from_id_card(id_card)
-                if isinstance(birth_date, str) and birth_date.strip() == '':
-                    birth_date = None
 
-                unit_price = rider.get('单价') or rider.get('unit_price')
+                unit_price = clean_value(rider.get('单价') or rider.get('unit_price'))
                 if unit_price:
                     try:
                         unit_price = float(unit_price)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         unit_price = None
 
                 values.append((
                     rider_id, name, phone, station_name, first_run_date, entry_date,
                     work_nature, unit_price,
-                    rider.get('结算周期') or rider.get('settlement_cycle'),
+                    clean_value(rider.get('结算周期') or rider.get('settlement_cycle')),
                     id_card, birth_date,
-                    rider.get('招聘渠道') or rider.get('recruitment_channel'),
-                    rider.get('三方/内推姓名') or rider.get('referral_name'),
-                    rider.get('薪资方案绑定') or rider.get('salary_plan_id'),
-                    rider.get('紧急联系人电话号码') or rider.get('emergency_phone'),
+                    clean_value(rider.get('招聘渠道') or rider.get('recruitment_channel')),
+                    clean_value(rider.get('三方/内推姓名') or rider.get('referral_name')),
+                    clean_value(rider.get('薪资方案绑定') or rider.get('salary_plan_id')),
+                    clean_value(rider.get('紧急联系人电话号码') or rider.get('emergency_phone')),
                     position_status,
-                    rider.get('人员标签') or rider.get('tags'),
-                    rider.get('备注') or rider.get('remark'),
-                    rider.get('合同状态') or rider.get('contract_status')
+                    clean_value(rider.get('人员标签') or rider.get('tags')),
+                    clean_value(rider.get('备注') or rider.get('remark')),
+                    clean_value(rider.get('合同状态') or rider.get('contract_status'))
                 ))
 
             if values:
@@ -639,13 +666,18 @@ def batch_create_riders():
         conn.close()
 
         result_msg = f'成功导入 {total_imported} 条'
+        if skipped_count > 0:
+            result_msg += f', 跳过 {skipped_count} 条（缺少核心字段）'
         if errors:
             result_msg += f', 错误: {"; ".join(errors[:5])}'
+
+        print(f'[BATCH-RESULT] {result_msg}')
 
         return jsonify({
             'success': True,
             'message': result_msg,
             'imported': total_imported,
+            'skipped': skipped_count,
             'errors': errors[:10] if errors else []
         })
     except Exception as e:
