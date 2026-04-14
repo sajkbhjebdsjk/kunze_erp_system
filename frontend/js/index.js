@@ -4131,7 +4131,7 @@ if (window.location.pathname.includes('part-time-settlement.html')) {
 function loadSettlementData(page = 1) {
     const tbody = document.getElementById('settlement-tbody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = `
         <tr>
             <td colspan="11" class="loading">
@@ -4139,19 +4139,21 @@ function loadSettlementData(page = 1) {
             </td>
         </tr>
     `;
-    
+
     // 获取筛选条件
     const station = document.getElementById('filter-station')?.value || '';
     const search = document.getElementById('filter-search')?.value || '';
-    const settlementDate = document.getElementById('filter-date')?.value || '';
+    const startDate = document.getElementById('filter-start-date')?.value || '';
+    const endDate = document.getElementById('filter-end-date')?.value || '';
 
     // 构建查询参数
     const params = new URLSearchParams();
     params.append('page', page);
     if (station && station !== '') params.append('station_name', station);
     if (search && search !== '') params.append('search', search);
-    if (settlementDate && settlementDate !== '') params.append('settlement_date', settlementDate);
-    
+    if (startDate && startDate !== '') params.append('start_date', startDate);
+    if (endDate && endDate !== '') params.append('end_date', endDate);
+
     const url = `${window.API_BASE_URL}/api/riders/part-time-settlement?${params.toString()}`;
     
     fetch(url)
@@ -4309,11 +4311,13 @@ function searchSettlementData() {
 function resetSettlementFilters() {
     const stationSelect = document.getElementById('filter-station');
     const searchInput = document.getElementById('filter-search');
-    const dateInput = document.getElementById('filter-date');
+    const startDateInput = document.getElementById('filter-start-date');
+    const endDateInput = document.getElementById('filter-end-date');
 
     if (stationSelect) stationSelect.value = '';
     if (searchInput) searchInput.value = '';
-    if (dateInput) dateInput.value = '';
+    if (startDateInput) startDateInput.value = '';
+    if (endDateInput) endDateInput.value = '';
 
     loadSettlementData(1);
 }

@@ -1076,7 +1076,6 @@ body {
 
 /* ==================== 全局分页样式（新设计）==================== */
 .pagination {
-    border-top: 1px solid #e0e0e0;
     margin-top: 20px;
 }
 
@@ -1085,13 +1084,7 @@ body {
     color: #666;
 }
 
-.pagination-nav {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.pagination-nav button {
+.pagination button {
     width: 32px;
     height: 32px;
     border: 1px solid #ddd;
@@ -1105,13 +1098,13 @@ body {
     transition: all 0.2s ease;
 }
 
-.pagination-nav button:hover:not(:disabled) {
+.pagination button:hover:not(:disabled) {
     background-color: #0066cc;
     color: white;
     border-color: #0066cc;
 }
 
-.pagination-nav button:disabled {
+.pagination button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
 }

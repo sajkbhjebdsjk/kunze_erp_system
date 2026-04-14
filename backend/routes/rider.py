@@ -65,22 +65,24 @@ def get_riders():
         if recruitment_channel:
             query += " AND r.recruitment_channel = %s"
             params.append(recruitment_channel)
-        
-        # 执行查询（先获取总数）
-        count_query = f"SELECT COUNT(*) as total FROM ({query}) as t"
-        cursor.execute(count_query, params)
-        total_count = cursor.fetchone()['total']
-        
+
+        # 基础查询（不包含ORDER BY、LIMIT、OFFSET）
+        base_query = query
+
         # 添加分页参数
         page = int(request.args.get('page', 1))
         per_page = 10
         offset = (page - 1) * per_page
-        
-        query += " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
-        params.extend([per_page, offset])
-        
-        # 执行分页查询
-        cursor.execute(query, params)
+
+        # 执行总数查询
+        count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as base_t"
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()['total']
+
+        # 执行分页数据查询
+        data_query = base_query + " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
+        data_params = params + [per_page, offset]
+        cursor.execute(data_query, data_params)
         riders = cursor.fetchall()
         
         # 批量获取合同状态（优先从骑手合同签署表查询）
@@ -1889,7 +1891,8 @@ def get_part_time_settlement():
         # 获取查询参数
         station_name = request.args.get('station_name', '')
         search = request.args.get('search', '')
-        settlement_date = request.args.get('settlement_date', '')
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
 
         # 分页参数
         page = int(request.args.get('page', 1))
@@ -1947,19 +1950,23 @@ def get_part_time_settlement():
 
         for rider in part_time_riders:
             unit_price = rider.get('unit_price') or 0
-            
-            # 生成当月每天的结算记录（简化逻辑：使用当前月份）
-            # 实际业务中应该根据入职日期和离职日期计算
+
+            # 生成结算记录（根据筛选的时间区间）
             try:
-                start_date = datetime.strptime(current_month_start, '%Y-%m-%d')
-                end_date = datetime.strptime(current_month_end, '%Y-%m-%d')
-                
+                # 如果指定了时间区间，使用该区间；否则使用当月
+                if start_date and end_date:
+                    range_start = datetime.strptime(start_date, '%Y-%m-%d')
+                    range_end = datetime.strptime(end_date, '%Y-%m-%d')
+                else:
+                    range_start = datetime.strptime(current_month_start, '%Y-%m-%d')
+                    range_end = datetime.strptime(current_month_end, '%Y-%m-%d')
+
                 # 只生成到今天为止的日期
-                if end_date > today:
-                    end_date = today
-                
-                current_date = start_date
-                while current_date <= end_date:
+                if range_end > today:
+                    range_end = today
+
+                current_date = range_start
+                while current_date <= range_end:
                     settlement_record = {
                         'city': rider.get('city') or rider.get('station_city') or '-',
                         'settlement_cycle': rider.get('settlement_cycle') or '-',

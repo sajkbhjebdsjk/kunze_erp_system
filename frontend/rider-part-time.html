@@ -26,7 +26,6 @@
                 </div>
             </div>
             <div class="user-info">
-                <a href="part-time-settlement.html" style="margin-right: 15px; color: #0066cc; text-decoration: none; font-weight: bold;">兼职结算列表</a>
                 <span id="username"></span>
                 <button id="logout-btn">退出登录</button>
             </div>
@@ -118,6 +117,7 @@
                         <a href="rider-roster.html" class="tab">骑手花名册</a>
                         <a href="rider-entry-exit-summary.html" class="tab">入离职汇总表</a>
                         <a href="rider-part-time.html" class="tab active">兼职骑手列表</a>
+                        <a href="part-time-settlement.html" class="tab">兼职结算列表</a>
                         <a href="rider-entry-records.html" class="tab">入职记录</a>
                         <a href="rider-exit-records.html" class="tab">离职记录</a>
                         <a href="rider-pending-exit.html" class="tab">待离职统计</a>
@@ -203,15 +203,13 @@
                         </table>
                         
                         <!-- 分页控件 -->
-                        <div class="pagination" id="parttime-pagination" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-top: 1px solid #e0e0e0;">
+                        <div class="pagination" id="parttime-pagination" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; padding: 15px 0;">
                             <div class="pagination-info" id="parttime-page-info">第 1-10 条/总共 0 条</div>
-                            <div class="pagination-nav">
-                                <button onclick="changePartTimePage('prev')" id="parttime-prev-btn" disabled>&lt;</button>
-                                <ul class="page-numbers" id="parttime-page-numbers">
-                                    <li class="active">1</li>
-                                </ul>
-                                <button onclick="changePartTimePage('next')" id="parttime-next-btn" disabled>&gt;</button>
-                            </div>
+                            <button onclick="changePartTimePage('prev')" id="parttime-prev-btn" disabled>&lt;</button>
+                            <ul class="page-numbers" id="parttime-page-numbers">
+                                <li class="active">1</li>
+                            </ul>
+                            <button onclick="changePartTimePage('next')" id="parttime-next-btn" disabled>&gt;</button>
                         </div>
                     </div>
                 </div>
