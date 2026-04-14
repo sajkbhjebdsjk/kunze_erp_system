@@ -610,17 +610,18 @@ def batch_create_riders():
 
         query = """
         INSERT INTO riders (
-            rider_id, name, phone, station_name, first_run_date, entry_date,
+            rider_id, name, phone, station_name, city, first_run_date, entry_date,
             work_nature, unit_price, settlement_cycle, id_card, birth_date,
             recruitment_channel, referral_name, salary_plan_id, emergency_phone,
             position_status, tags, remark, contract_status
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             name = VALUES(name), phone = VALUES(phone),
-            station_name = VALUES(station_name), first_run_date = VALUES(first_run_date),
-            entry_date = VALUES(entry_date), work_nature = VALUES(work_nature),
-            unit_price = VALUES(unit_price), settlement_cycle = VALUES(settlement_cycle),
-            id_card = VALUES(id_card), birth_date = VALUES(birth_date),
+            station_name = VALUES(station_name), city = VALUES(city),
+            first_run_date = VALUES(first_run_date), entry_date = VALUES(entry_date),
+            work_nature = VALUES(work_nature), unit_price = VALUES(unit_price),
+            settlement_cycle = VALUES(settlement_cycle), id_card = VALUES(id_card),
+            birth_date = VALUES(birth_date),
             recruitment_channel = VALUES(recruitment_channel), referral_name = VALUES(referral_name),
             salary_plan_id = VALUES(salary_plan_id), emergency_phone = VALUES(emergency_phone),
             position_status = VALUES(position_status), tags = VALUES(tags),
@@ -700,6 +701,20 @@ def batch_create_riders():
                 phone = clean_value(rider.get('手机号') or rider.get('phone'))
                 station_name = clean_value(rider.get('站点名称') or rider.get('station_name'))
 
+                # 提取城市字段并转换为city_code
+                excel_city = rider.get('城市') or rider.get('city')
+                city_mapping = {
+                    '杭州': 'hangzhou',
+                    '武汉': 'wuhan',
+                    '沈阳': 'shenyang',
+                    '金华': 'jinhua',
+                    '绍兴': 'shaoxing'
+                }
+                if excel_city:
+                    city = city_mapping.get(str(excel_city).strip(), str(excel_city).strip())
+                else:
+                    city = 'all'
+
                 # 转换Excel日期格式（支持序列号和字符串）
                 entry_date_raw = rider.get('入职日期') or rider.get('entry_date')
                 entry_date = convert_excel_date(entry_date_raw)
@@ -766,7 +781,7 @@ def batch_create_riders():
                         unit_price = None
 
                 values.append((
-                    rider_id, name, phone, station_name, first_run_date, entry_date,
+                    rider_id, name, phone, station_name, city, first_run_date, entry_date,
                     work_nature, unit_price,
                     clean_value(rider.get('结算周期') or rider.get('settlement_cycle')),
                     id_card, birth_date,

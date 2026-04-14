@@ -1079,20 +1079,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const file = e.target.files[0];
             if (!file) return;
 
-            console.log('[导入] 文件名:', file.name, '文件类型:', file.type, '文件大小:', file.size);
-
             // 获取文件扩展名
             const fileName = file.name.toLowerCase();
             const isExcelFile = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
             const isCSVFile = fileName.endsWith('.csv');
 
             if (isExcelFile) {
-                // 使用SheetJS解析Excel文件
-                console.log('[导入] 检测到Excel文件，使用SheetJS解析');
                 parseExcelFile(file);
             } else if (isCSVFile) {
-                // 使用文本方式解析CSV文件
-                console.log('[导入] 检测到CSV文件，使用文本解析');
                 parseCSVFile(file);
             } else {
                 alert('不支持的文件格式，请上传 .xlsx, .xls 或 .csv 文件');
@@ -1119,11 +1113,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 将工作表转换为JSON数组
                 const riders = XLSX.utils.sheet_to_json(worksheet);
-
-                console.log('[Excel解析] 成功解析Excel文件');
-                console.log('[Excel解析] 工作表名称:', firstSheetName);
-                console.log('[Excel解析] 解析后的数据:', riders);
-                console.log('[Excel解析] 数据条数:', riders.length);
 
                 if (riders.length === 0) {
                     alert('Excel文件中没有数据');
@@ -1152,7 +1141,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const readerUTF8 = new FileReader();
         readerUTF8.onload = function(e) {
             let csvContent = e.target.result;
-            console.log('UTF-8 CSV内容前200字符:', csvContent.substring(0, 200));
 
             // 检查是否有乱码（简单检测：是否包含大量�字符）
             const hasGarbled = (csvContent.match(/�/g) || []).length > 5;
@@ -1164,7 +1152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const arrayBuffer = e.target.result;
                     const decoder = new TextDecoder('gbk');
                     csvContent = decoder.decode(arrayBuffer);
-                    console.log('GBK CSV内容:', csvContent.substring(0, 200));
                     processCSVContent(csvContent);
                 };
                 readerGBK.readAsArrayBuffer(file);
@@ -1175,8 +1162,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function processCSVContent(csvContent) {
             const riders = parseCSV(csvContent);
-            console.log('[CSV解析] 解析后的数据:', riders);
-            console.log('[CSV解析] 数据条数:', riders.length);
 
             if (riders.length === 0) {
                 alert('解析失败，文件格式不正确');
