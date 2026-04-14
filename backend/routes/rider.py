@@ -537,24 +537,39 @@ def batch_create_riders():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # 预处理：收集所有站点名称，自动创建缺失的站点
-        station_set = set()
+        # 预处理：收集所有站点名称及其对应的城市（从Excel的"城市"字段获取）
+        station_city_map = {}  # {站点名称: 城市中文名}
         for rider in riders:
             station = rider.get('站点名称') or rider.get('station_name')
+            city = rider.get('城市') or rider.get('city')
             if station and str(station).strip():
-                station_set.add(str(station).strip())
+                station = str(station).strip()
+                city = str(city).strip() if city else 'all'
+                # 优先保留有明确城市信息的记录
+                if station not in station_city_map or (city != 'all' and station_city_map[station] == 'all'):
+                    station_city_map[station] = city
 
-        if station_set:
+        print(f'[BATCH-STATION] 发现 {len(station_city_map)} 个唯一站点')
+
+        if station_city_map:
             # 检查哪些站点不存在
-            placeholders = ','.join(['%s'] * len(station_set))
-            cursor.execute(f"""
-                SELECT station_name FROM stations WHERE station_name IN ({placeholders})
-            """, list(station_set))
-            # 使用字典键名访问（因为使用了DictCursor）
-            existing_stations = {row['station_name'] for row in cursor.fetchall()}
-            missing_stations = station_set - existing_stations
+            station_list = list(station_city_map.keys())
+            placeholders = ','.join(['%s'] * len(station_list))
 
-            # 自动创建缺失的站点
+            try:
+                cursor.execute(f"""
+                    SELECT station_name FROM stations WHERE station_name IN ({placeholders})
+                """, station_list)
+                existing_stations = {row['station_name'] for row in cursor.fetchall()}
+                missing_stations = set(station_list) - existing_stations
+
+                print(f'[BATCH-STATION] 已存在: {len(existing_stations)} 个, 缺失: {len(missing_stations)} 个')
+
+            except Exception as e:
+                print(f'[BATCH-STATION-ERROR] 查询现有站点失败: {e}')
+                missing_stations = set(station_list)
+
+            # 城市名称到代码的映射
             city_mapping = {
                 '杭州': 'hangzhou',
                 '武汉': 'wuhan',
@@ -563,25 +578,35 @@ def batch_create_riders():
                 '绍兴': 'shaoxing'
             }
 
+            # 自动创建缺失的站点（使用Excel中的城市字段）
+            created_count = 0
             for missing_station in missing_stations:
-                # 根据站点名称推断城市代码
-                city_code = 'all'  # 默认值
-                for city_name, code in city_mapping.items():
-                    if city_name in missing_station:
-                        city_code = code
-                        break
+                # 从Excel数据获取该站点对应的城市
+                excel_city = station_city_map.get(missing_station, 'all')
+
+                # 转换为city_code
+                city_code = city_mapping.get(excel_city, 'all')
 
                 try:
+                    station_id = f'ST_{missing_station[:8]}_{datetime.now().strftime("%H%M%S")}_{created_count}'
                     cursor.execute("""
                         INSERT INTO stations (station_id, station_name, city_code, area_manager)
                         VALUES (%s, %s, %s, %s)
-                    """, (f'ST_{missing_station[:10]}_{datetime.now().strftime("%H%M%S")}',
-                          missing_station, city_code, '系统导入'))
-                    print(f'[BATCH-STATION] 自动创建站点: {missing_station} (城市: {city_code})')
+                    """, (station_id, missing_station, city_code, '系统导入'))
+                    created_count += 1
+                    print(f'[BATCH-STATION] ✅ 创建站点: {missing_station} (Excel城市: {excel_city} → 代码: {city_code})')
                 except Exception as e:
-                    print(f'[BATCH-STATION-WARN] 创建站点失败: {missing_station}, 错误: {e}')
+                    print(f'[BATCH-STATION-WARN] ❌ 创建站点失败: {missing_station}, 错误: {e}')
 
-            conn.commit()
+            # 提交站点创建事务
+            try:
+                conn.commit()
+                print(f'[BATCH-STATION] 成功创建 {created_count} 个新站点')
+            except Exception as e:
+                print(f'[BATCH-STATION-ERROR] 提交站点数据失败: {e}')
+                import traceback
+                traceback.print_exc()
+                conn.rollback()
 
         query = """
         INSERT INTO riders (
