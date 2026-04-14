@@ -1073,3 +1073,76 @@ body {
         align-items: flex-start;
     }
 }
+
+/* ==================== 全局分页样式（新设计）==================== */
+.pagination {
+    border-top: 1px solid #e0e0e0;
+    margin-top: 20px;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-nav button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.pagination-nav button:hover:not(:disabled) {
+    background-color: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.pagination-nav button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.page-numbers li {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.page-numbers li:hover {
+    background-color: #f5f5f5;
+}
+
+.page-numbers li.active {
+    border-color: #0066cc;
+    color: #0066cc;
+    font-weight: bold;
+}

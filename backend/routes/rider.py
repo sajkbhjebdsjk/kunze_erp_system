@@ -1885,66 +1885,66 @@ def get_part_time_settlement():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        
+
         # 获取查询参数
-        city = request.args.get('city', 'all')
-        settlement_cycle = request.args.get('settlement_cycle', '')
         station_name = request.args.get('station_name', '')
         search = request.args.get('search', '')
-        
+        settlement_date = request.args.get('settlement_date', '')
+
         # 分页参数
         page = int(request.args.get('page', 1))
         per_page = 10
         offset = (page - 1) * per_page
-        
+
         # 查询基础：从riders表获取所有兼职骑手
         query = """
-            SELECT r.rider_id, r.name, r.phone, r.station_name, 
+            SELECT r.rider_id, r.name, r.phone, r.station_name,
                    r.unit_price, r.settlement_cycle, r.work_nature, r.city,
                    s.city_code as station_city,
-                   sp.name as salary_plan_name
+                   sp.plan_name as salary_plan_name
             FROM riders r
             LEFT JOIN stations s ON r.station_name = s.station_name
             LEFT JOIN salary_plans sp ON r.salary_plan_id = sp.id
             WHERE r.work_nature = '兼职'
         """
         params = []
-        
-        # 添加筛选条件
-        if city != 'all':
-            query += " AND r.city = %s"
-            params.append(city)
-            
-        if settlement_cycle:
-            query += " AND r.settlement_cycle = %s"
-            params.append(settlement_cycle)
-            
+
+        # 添加筛选条件（只保留站点、搜索、结算日期）
         if station_name:
             query += " AND r.station_name = %s"
             params.append(station_name)
-            
+
         if search:
             query += " AND (r.rider_id LIKE %s OR r.name LIKE %s)"
             params.extend([f'%{search}%', f'%{search}%'])
-        
+
         # 获取总数
         count_query = f"SELECT COUNT(*) as total FROM ({query}) as t"
         cursor.execute(count_query, params)
         total_count = cursor.fetchone()['total']
-        
+
         # 获取分页数据
         query += " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
         params.extend([per_page, offset])
-        
+
         cursor.execute(query, params)
         part_time_riders = cursor.fetchall()
-        
+
         # 生成结算记录（每个骑手当月每天一条）
         settlement_data = []
         today = datetime.now()
         current_month_start = today.replace(day=1).strftime('%Y-%m-%d')
         current_month_end = today.strftime('%Y-%m-%d')
-        
+
+        # 如果指定了结算日期筛选，只生成该日期的数据
+        if settlement_date:
+            try:
+                filter_date = datetime.strptime(settlement_date, '%Y-%m-%d')
+                current_month_start = filter_date.strftime('%Y-%m-%d')
+                current_month_end = filter_date.strftime('%Y-%m-%d')
+            except:
+                pass
+
         for rider in part_time_riders:
             unit_price = rider.get('unit_price') or 0
             

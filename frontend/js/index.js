@@ -539,35 +539,75 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 更新骑手花名册分页信息
+    // 更新骑手花名册分页信息（新样式）
     function updateRosterPagination(pagination) {
         const pageInfo = document.getElementById('roster-page-info');
         const prevBtn = document.getElementById('roster-prev-btn');
         const nextBtn = document.getElementById('roster-next-btn');
-        
+        const pageNumbers = document.getElementById('roster-page-numbers');
+
+        // 更新左侧信息
         if (pageInfo) {
-            pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+            const start = (pagination.current_page - 1) * 10 + 1;
+            const end = Math.min(pagination.current_page * 10, pagination.total_count);
+            pageInfo.textContent = `第 ${start}-${end} 条/总共 ${pagination.total_count} 条`;
         }
-        
+
+        // 更新按钮状态
         if (prevBtn) {
             prevBtn.disabled = pagination.current_page <= 1;
         }
-        
+
         if (nextBtn) {
             nextBtn.disabled = pagination.current_page >= pagination.total_pages;
         }
+
+        // 渲染页码列表
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            const totalPages = pagination.total_pages;
+            const currentPage = pagination.current_page;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 2) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.textContent = i;
+                li.onclick = () => loadRiderRosterData({}, i);
+                if (i === currentPage) {
+                    li.classList.add('active');
+                }
+                pageNumbers.appendChild(li);
+            }
+
+            if (totalPages > 5 && endPage < totalPages) {
+                const dots = document.createElement('li');
+                dots.textContent = '...';
+                dots.style.cursor = 'default';
+                dots.style.border = 'none';
+                pageNumbers.appendChild(dots);
+            }
+        }
     }
-    
+
     // 切换骑手花名册页面
     function changeRosterPage(direction) {
         let newPage = rosterCurrentPage;
-        
+
         if (direction === 'prev' && rosterCurrentPage > 1) {
             newPage = rosterCurrentPage - 1;
         } else if (direction === 'next' && rosterCurrentPage < rosterTotalPages) {
             newPage = rosterCurrentPage + 1;
         }
-        
+
         if (newPage !== rosterCurrentPage) {
             loadRiderRosterData({}, newPage);
         }
@@ -2744,35 +2784,75 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    // 更新兼职骑手列表分页信息
+    // 更新兼职骑手列表分页信息（新样式）
     function updatePartTimePagination(pagination) {
         const pageInfo = document.getElementById('parttime-page-info');
         const prevBtn = document.getElementById('parttime-prev-btn');
         const nextBtn = document.getElementById('parttime-next-btn');
-        
+        const pageNumbers = document.getElementById('parttime-page-numbers');
+
+        // 更新左侧信息
         if (pageInfo) {
-            pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+            const start = (pagination.current_page - 1) * 10 + 1;
+            const end = Math.min(pagination.current_page * 10, pagination.total_count);
+            pageInfo.textContent = `第 ${start}-${end} 条/总共 ${pagination.total_count} 条`;
         }
-        
+
+        // 更新按钮状态
         if (prevBtn) {
             prevBtn.disabled = pagination.current_page <= 1;
         }
-        
+
         if (nextBtn) {
             nextBtn.disabled = pagination.current_page >= pagination.total_pages;
         }
+
+        // 渲染页码列表
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            const totalPages = pagination.total_pages;
+            const currentPage = pagination.current_page;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 2) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.textContent = i;
+                li.onclick = () => loadPartTimeRiderData({}, i);
+                if (i === currentPage) {
+                    li.classList.add('active');
+                }
+                pageNumbers.appendChild(li);
+            }
+
+            if (totalPages > 5 && endPage < totalPages) {
+                const dots = document.createElement('li');
+                dots.textContent = '...';
+                dots.style.cursor = 'default';
+                dots.style.border = 'none';
+                pageNumbers.appendChild(dots);
+            }
+        }
     }
-    
+
     // 切换兼职骑手列表页面
     function changePartTimePage(direction) {
         let newPage = partTimeCurrentPage;
-        
+
         if (direction === 'prev' && partTimeCurrentPage > 1) {
             newPage = partTimeCurrentPage - 1;
         } else if (direction === 'next' && partTimeCurrentPage < partTimeTotalPages) {
             newPage = partTimeCurrentPage + 1;
         }
-        
+
         if (newPage !== partTimeCurrentPage) {
             loadPartTimeRiderData({}, newPage);
         }
@@ -4061,18 +4141,16 @@ function loadSettlementData(page = 1) {
     `;
     
     // 获取筛选条件
-    const city = document.getElementById('filter-city')?.value || 'all';
-    const cycle = document.getElementById('filter-cycle')?.value || '';
     const station = document.getElementById('filter-station')?.value || '';
     const search = document.getElementById('filter-search')?.value || '';
-    
+    const settlementDate = document.getElementById('filter-date')?.value || '';
+
     // 构建查询参数
     const params = new URLSearchParams();
     params.append('page', page);
-    if (city && city !== '') params.append('city', city);
-    if (cycle && cycle !== '') params.append('settlement_cycle', cycle);
     if (station && station !== '') params.append('station_name', station);
     if (search && search !== '') params.append('search', search);
+    if (settlementDate && settlementDate !== '') params.append('settlement_date', settlementDate);
     
     const url = `${window.API_BASE_URL}/api/riders/part-time-settlement?${params.toString()}`;
     
@@ -4145,35 +4223,78 @@ function renderSettlementTable(data) {
     });
 }
 
-// 更新分页信息
+// 更新分页信息（新样式）
 function updatePagination(pagination) {
     const pageInfo = document.getElementById('page-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    
+    const pageNumbers = document.getElementById('page-numbers');
+
+    // 更新左侧信息：第 X-Y 条/总共 Z 条
     if (pageInfo) {
-        pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+        const start = (pagination.current_page - 1) * 10 + 1;
+        const end = Math.min(pagination.current_page * 10, pagination.total_count);
+        pageInfo.textContent = `第 ${start}-${end} 条/总共 ${pagination.total_count} 条`;
     }
-    
+
+    // 更新按钮状态
     if (prevBtn) {
         prevBtn.disabled = pagination.current_page <= 1;
     }
-    
+
     if (nextBtn) {
         nextBtn.disabled = pagination.current_page >= pagination.total_pages;
+    }
+
+    // 渲染页码列表
+    if (pageNumbers) {
+        pageNumbers.innerHTML = '';
+        const totalPages = pagination.total_pages;
+        const currentPage = pagination.current_page;
+
+        // 显示页码逻辑：最多显示5个页码
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        // 调整显示范围
+        if (currentPage <= 3) {
+            endPage = Math.min(5, totalPages);
+        }
+        if (currentPage >= totalPages - 2) {
+            startPage = Math.max(1, totalPages - 4);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.textContent = i;
+            li.onclick = () => loadSettlementData(i);
+            if (i === currentPage) {
+                li.classList.add('active');
+            }
+            pageNumbers.appendChild(li);
+        }
+
+        // 添加省略号和最后一页
+        if (totalPages > 5 && endPage < totalPages) {
+            const dots = document.createElement('li');
+            dots.textContent = '...';
+            dots.style.cursor = 'default';
+            dots.style.border = 'none';
+            pageNumbers.appendChild(dots);
+        }
     }
 }
 
 // 切换页面
 function changePage(direction) {
     let newPage = settlementCurrentPage;
-    
+
     if (direction === 'prev' && settlementCurrentPage > 1) {
         newPage = settlementCurrentPage - 1;
     } else if (direction === 'next' && settlementCurrentPage < settlementTotalPages) {
         newPage = settlementCurrentPage + 1;
     }
-    
+
     if (newPage !== settlementCurrentPage) {
         loadSettlementData(newPage);
     }
@@ -4186,16 +4307,14 @@ function searchSettlementData() {
 
 // 重置筛选条件
 function resetSettlementFilters() {
-    const citySelect = document.getElementById('filter-city');
-    const cycleSelect = document.getElementById('filter-cycle');
     const stationSelect = document.getElementById('filter-station');
     const searchInput = document.getElementById('filter-search');
-    
-    if (citySelect) citySelect.value = '';
-    if (cycleSelect) cycleSelect.value = '';
+    const dateInput = document.getElementById('filter-date');
+
     if (stationSelect) stationSelect.value = '';
     if (searchInput) searchInput.value = '';
-    
+    if (dateInput) dateInput.value = '';
+
     loadSettlementData(1);
 }
 
