@@ -550,7 +550,8 @@ def batch_create_riders():
             cursor.execute(f"""
                 SELECT station_name FROM stations WHERE station_name IN ({placeholders})
             """, list(station_set))
-            existing_stations = {row[0] for row in cursor.fetchall()}
+            # 使用字典键名访问（因为使用了DictCursor）
+            existing_stations = {row['station_name'] for row in cursor.fetchall()}
             missing_stations = station_set - existing_stations
 
             # 自动创建缺失的站点
