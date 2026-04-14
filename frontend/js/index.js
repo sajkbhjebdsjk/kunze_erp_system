@@ -389,7 +389,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 加载骑手花名册数据
-    function loadRiderRosterData(filters = {}) {
+    // 骑手花名册分页变量
+    let rosterCurrentPage = 1;
+    let rosterTotalPages = 1;
+    
+    function loadRiderRosterData(filters = {}, page = 1) {
         const riderTable = document.getElementById('rider-table');
         if (!riderTable) return;
         
@@ -408,9 +412,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 获取当前选择的城市
         const selectedCity = filters.city || localStorage.getItem('selectedCity') || 'all';
         
-        // 构建查询参数
+        // 构建查询参数（包含分页参数）
         const queryParams = new URLSearchParams();
         queryParams.append('city', selectedCity);
+        queryParams.append('page', page);
         if (filters.organization) queryParams.append('organization', filters.organization);
         if (filters.department) queryParams.append('department', filters.department);
         if (filters.search) queryParams.append('search', filters.search);
@@ -426,6 +431,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     const riders = data.data;
+                    const pagination = data.pagination;
+                    
+                    // 更新分页状态
+                    rosterCurrentPage = pagination.current_page;
+                    rosterTotalPages = pagination.total_pages;
+                    updateRosterPagination(pagination);
+                    
                     tbody.innerHTML = '';
                     
                     riders.forEach((rider, index) => {
@@ -525,6 +537,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
             `;
         });
+    }
+    
+    // 更新骑手花名册分页信息
+    function updateRosterPagination(pagination) {
+        const pageInfo = document.getElementById('roster-page-info');
+        const prevBtn = document.getElementById('roster-prev-btn');
+        const nextBtn = document.getElementById('roster-next-btn');
+        
+        if (pageInfo) {
+            pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+        }
+        
+        if (prevBtn) {
+            prevBtn.disabled = pagination.current_page <= 1;
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = pagination.current_page >= pagination.total_pages;
+        }
+    }
+    
+    // 切换骑手花名册页面
+    function changeRosterPage(direction) {
+        let newPage = rosterCurrentPage;
+        
+        if (direction === 'prev' && rosterCurrentPage > 1) {
+            newPage = rosterCurrentPage - 1;
+        } else if (direction === 'next' && rosterCurrentPage < rosterTotalPages) {
+            newPage = rosterCurrentPage + 1;
+        }
+        
+        if (newPage !== rosterCurrentPage) {
+            loadRiderRosterData({}, newPage);
+        }
     }
     
     // 绑定骑手操作事件
@@ -2603,7 +2649,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 加载兼职骑手列表数据
-    function loadPartTimeRiderData(filters = {}) {
+    // 兼职骑手列表分页变量
+    let partTimeCurrentPage = 1;
+    let partTimeTotalPages = 1;
+    
+    function loadPartTimeRiderData(filters = {}, page = 1) {
         const partTimeTable = document.getElementById('part-time-rider-table');
         if (!partTimeTable) return;
         
@@ -2619,10 +2669,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // 获取当前选择的城市
         const selectedCity = filters.city || localStorage.getItem('selectedCity') || 'hangzhou';
         
-        // 构建查询参数
+        // 构建查询参数（包含分页参数）
         const queryParams = new URLSearchParams();
         queryParams.append('city', selectedCity);
         queryParams.append('work_nature', '兼职');
+        queryParams.append('page', page);
         if (filters.station) queryParams.append('department', filters.station);
         if (filters.search) queryParams.append('search', filters.search);
         if (filters.startDate) queryParams.append('start_date', filters.startDate);
@@ -2637,6 +2688,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     const riders = data.data;
+                    const pagination = data.pagination;
+                    
+                    // 更新分页状态
+                    partTimeCurrentPage = pagination.current_page;
+                    partTimeTotalPages = pagination.total_pages;
+                    updatePartTimePagination(pagination);
+                    
                     tbody.innerHTML = '';
                     
                     riders.forEach((rider, index) => {
@@ -2684,6 +2742,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>
                 `;
             });
+    }
+    
+    // 更新兼职骑手列表分页信息
+    function updatePartTimePagination(pagination) {
+        const pageInfo = document.getElementById('parttime-page-info');
+        const prevBtn = document.getElementById('parttime-prev-btn');
+        const nextBtn = document.getElementById('parttime-next-btn');
+        
+        if (pageInfo) {
+            pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+        }
+        
+        if (prevBtn) {
+            prevBtn.disabled = pagination.current_page <= 1;
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = pagination.current_page >= pagination.total_pages;
+        }
+    }
+    
+    // 切换兼职骑手列表页面
+    function changePartTimePage(direction) {
+        let newPage = partTimeCurrentPage;
+        
+        if (direction === 'prev' && partTimeCurrentPage > 1) {
+            newPage = partTimeCurrentPage - 1;
+        } else if (direction === 'next' && partTimeCurrentPage < partTimeTotalPages) {
+            newPage = partTimeCurrentPage + 1;
+        }
+        
+        if (newPage !== partTimeCurrentPage) {
+            loadPartTimeRiderData({}, newPage);
+        }
     }
 
     // 绑定兼职骑手操作事件
@@ -3943,3 +4035,213 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// ==================== 兼职结算列表功能 ====================
+let settlementCurrentPage = 1;
+let settlementTotalPages = 1;
+let settlementTotalCount = 0;
+
+// 页面加载完成后初始化
+if (window.location.pathname.includes('part-time-settlement.html')) {
+    loadSettlementData();
+    loadStationOptions();
+}
+
+// 加载结算数据
+function loadSettlementData(page = 1) {
+    const tbody = document.getElementById('settlement-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="11" class="loading">
+                <p>加载中...</p>
+            </td>
+        </tr>
+    `;
+    
+    // 获取筛选条件
+    const city = document.getElementById('filter-city')?.value || 'all';
+    const cycle = document.getElementById('filter-cycle')?.value || '';
+    const station = document.getElementById('filter-station')?.value || '';
+    const search = document.getElementById('filter-search')?.value || '';
+    
+    // 构建查询参数
+    const params = new URLSearchParams();
+    params.append('page', page);
+    if (city && city !== '') params.append('city', city);
+    if (cycle && cycle !== '') params.append('settlement_cycle', cycle);
+    if (station && station !== '') params.append('station_name', station);
+    if (search && search !== '') params.append('search', search);
+    
+    const url = `${window.API_BASE_URL}/api/riders/part-time-settlement?${params.toString()}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderSettlementTable(data.data);
+                updatePagination(data.pagination);
+                settlementCurrentPage = data.pagination.current_page;
+                settlementTotalPages = data.pagination.total_pages;
+                settlementTotalCount = data.pagination.total_count;
+            } else {
+                alert('加载失败: ' + (data.error || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('加载结算数据失败:', error);
+            alert('网络错误，请稍后重试');
+        });
+}
+
+// 渲染结算表格
+function renderSettlementTable(data) {
+    const tbody = document.getElementById('settlement-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" style="text-align: center; padding: 40px; color: #999;">
+                    暂无结算数据
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const cityMap = {
+        'hangzhou': '杭州',
+        'wuhan': '武汉',
+        'shenyang': '沈阳',
+        'jinhua': '金华',
+        'shaoxing': '绍兴'
+    };
+    
+    data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        
+        const cityDisplay = cityMap[item.city] || item.city || '-';
+        const unitPriceDisplay = typeof item.unit_price === 'number' ? item.unit_price.toFixed(2) : item.unit_price;
+        
+        row.innerHTML = `
+            <td>${(settlementCurrentPage - 1) * 10 + index + 1}</td>
+            <td>${cityDisplay}</td>
+            <td>${item.settlement_cycle || '-'}</td>
+            <td>${item.settlement_date || '-'}</td>
+            <td>${item.station_name || '-'}</td>
+            <td>${item.rider_id || '-'}</td>
+            <td>${item.name || '-'}</td>
+            <td>¥${unitPriceDisplay}</td>
+            <td>${item.work_nature || '-'}</td>
+            <td>${item.salary_plan || '-'}</td>
+            <td><a href="#" class="action-link" onclick="viewRiderDetail('${item.rider_id}')">查看</a></td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// 更新分页信息
+function updatePagination(pagination) {
+    const pageInfo = document.getElementById('page-info');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    if (pageInfo) {
+        pageInfo.textContent = `第 ${pagination.current_page} 页 / 共 ${pagination.total_pages} 页 (共 ${pagination.total_count} 条)`;
+    }
+    
+    if (prevBtn) {
+        prevBtn.disabled = pagination.current_page <= 1;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = pagination.current_page >= pagination.total_pages;
+    }
+}
+
+// 切换页面
+function changePage(direction) {
+    let newPage = settlementCurrentPage;
+    
+    if (direction === 'prev' && settlementCurrentPage > 1) {
+        newPage = settlementCurrentPage - 1;
+    } else if (direction === 'next' && settlementCurrentPage < settlementTotalPages) {
+        newPage = settlementCurrentPage + 1;
+    }
+    
+    if (newPage !== settlementCurrentPage) {
+        loadSettlementData(newPage);
+    }
+}
+
+// 搜索结算数据
+function searchSettlementData() {
+    loadSettlementData(1); // 重置到第一页
+}
+
+// 重置筛选条件
+function resetSettlementFilters() {
+    const citySelect = document.getElementById('filter-city');
+    const cycleSelect = document.getElementById('filter-cycle');
+    const stationSelect = document.getElementById('filter-station');
+    const searchInput = document.getElementById('filter-search');
+    
+    if (citySelect) citySelect.value = '';
+    if (cycleSelect) cycleSelect.value = '';
+    if (stationSelect) stationSelect.value = '';
+    if (searchInput) searchInput.value = '';
+    
+    loadSettlementData(1);
+}
+
+// 加载站点选项（用于筛选）
+function loadStationOptions() {
+    const stationSelect = document.getElementById('filter-station');
+    if (!stationSelect) return;
+    
+    fetch(`${window.API_BASE_URL}/api/stations`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                stationSelect.innerHTML = '<option value="">全部站点</option>';
+                data.data.forEach(station => {
+                    const option = document.createElement('option');
+                    option.value = station.station_name;
+                    option.textContent = station.station_name;
+                    stationSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('加载站点列表失败:', error);
+        });
+}
+
+// 导出结算数据
+function exportSettlementData() {
+    alert('导出功能开发中...');
+}
+
+// 全屏切换
+function toggleFullscreen() {
+    const element = document.documentElement;
+    if (!document.fullscreenElement) {
+        element.requestFullscreen().catch(err => {
+            console.error('无法进入全屏模式:', err);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+// 查看骑手详情
+function viewRiderDetail(riderId) {
+    alert(`查看骑手详情: ${riderId}`);
+}

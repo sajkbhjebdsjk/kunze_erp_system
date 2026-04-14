@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP系统 - 兼职骑手列表</title>
+    <title>ERP系统 - 兼职结算列表</title>
     <link rel="stylesheet" href="css/index.css">
         <script src="js/config.js"></script></head>
 <body>
@@ -84,19 +84,19 @@
                             </ul>
                         </li>
                         <li>
-                            <a href="#" class="nav-item with-submenu">人员及权限管理</a>
-                            <ul class="sub-menu">
+                            <a href="#" class="nav-item with-submenu active">人员及权限管理</a>
+                            <ul class="sub-menu show">
                                 <li><a href="organization.html" class="nav-item">组织架构</a></li>
                                 <li><a href="staff-roster.html" class="nav-item">管理人员花名册</a></li>
                                 <li><a href="user-management.html" class="nav-item">账号管理</a></li>
-                                <li><a href="permission-management.html" class="nav-item">权限管理</a></li>
+                                <li><a href="permission-management.html" class="nav-item active">权限管理</a></li>
                                 <li><a href="role-management.html" class="nav-item">角色管理</a></li>
                                 <li>
                                     <a href="#" class="nav-item with-submenu">配置工具</a>
                                     <ul class="sub-menu">
                                         <li><a href="workflow-config.html" class="nav-item">工作流配置</a></li>
                                         <li><a href="#" class="nav-item">招聘政策配置</a></li>
-                                        <li><a href="salary-plan-config.html" class="nav-item">薪资方案配置</a></li>
+                                        <li><a href="#" class="nav-item">薪资方案配置</a></li>
                                         <li><a href="#" class="nav-item">内部绩效考核方案配置</a></li>
                                         <li><a href="#" class="nav-item">固定费用配置</a></li>
                                         <li><a href="contract-config.html" class="nav-item">合同配置台</a></li>
@@ -106,67 +106,66 @@
                         </li>
                     </ul>
                 </nav>
-
             </aside>
             <main class="main">
-                <div class="rider-part-time" id="rider-part-time-page">
-                    <h2>兼职骑手列表</h2>
+                <div class="part-time-settlement" id="part-time-settlement-page">
+                    <h2>兼职结算列表</h2>
+                    
+                    <!-- Tab导航 -->
                     <div class="rider-tabs">
                         <a href="rider-overview.html" class="tab">运力总览</a>
-                        <!-- <a href="rider-approval.html" class="tab">入职审批</a> -->
                         <a href="rider-roster.html" class="tab">骑手花名册</a>
-                        <a href="rider-entry-exit-summary.html" class="tab">入离职汇总表</a>
-                        <a href="rider-part-time.html" class="tab active">兼职骑手列表</a>
-                        <a href="rider-entry-records.html" class="tab">入职记录</a>
-                        <a href="rider-exit-records.html" class="tab">离职记录</a>
-                        <a href="rider-pending-exit.html" class="tab">待离职统计</a>
+                        <a href="rider-part-time.html" class="tab">兼职骑手列表</a>
+                        <a href="part-time-settlement.html" class="tab active">兼职结算列表</a>
                     </div>
                     
                     <!-- 操作按钮 -->
-                    <div class="rider-actions">
-                        <button class="btn btn-secondary">批量设置工作性质</button>
-                        <button class="btn btn-secondary">批量设置首跑日期</button>
-                        <button class="btn btn-secondary">批量设置招聘渠道</button>
-                        <button class="btn btn-secondary">自动更新首跑骑手信息</button>
-                        <button class="btn btn-secondary">下载导入模板</button>
-                        <button class="btn btn-secondary">导入骑手信息</button>
-                        <button class="btn btn-primary" onclick="window.location.href='part-time-settlement.html'" style="background-color: #0066cc; color: white; border: none;">兼职结算列表</button>
+                    <div class="settlement-actions">
                         <div style="margin-left: auto; display: flex; gap: 10px;">
-                            <button class="btn btn-secondary">导出数据</button>
-                            <button class="btn btn-secondary">全屏</button>
+                            <button class="btn btn-secondary" onclick="exportSettlementData()">导出数据</button>
+                            <button class="btn btn-secondary" onclick="toggleFullscreen()">全屏</button>
                         </div>
                     </div>
                     
                     <!-- 筛选器 -->
-                    <div class="rider-filters" style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
+                    <div class="settlement-filters" style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
                         <div style="flex: 1;">
-                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">组织</label>
-                            <input type="text" placeholder="请选择关键字搜索，用英文,隔开" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">城市</label>
+                            <select id="filter-city" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background-color: white;">
+                                <option value="">全部城市</option>
+                                <option value="hangzhou">杭州</option>
+                                <option value="wuhan">武汉</option>
+                                <option value="shenyang">沈阳</option>
+                                <option value="jinhua">金华</option>
+                                <option value="shaoxing">绍兴</option>
+                            </select>
                         </div>
                         <div style="flex: 1;">
-                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">站点</label>
-                            <select id="department-select" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background-color: white;">
-                                <option value="">请选择站点</option>
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">结算周期</label>
+                            <select id="filter-cycle" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background-color: white;">
+                                <option value="">全部周期</option>
+                                <option value="日结">日结</option>
+                                <option value="周结">周结</option>
+                                <option value="半月结">半月结</option>
+                                <option value="月结">月结</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">站点名称</label>
+                            <select id="filter-station" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background-color: white;">
+                                <option value="">全部站点</option>
                             </select>
                         </div>
                         <div style="flex: 1;">
                             <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">搜索内容</label>
-                            <input type="text" placeholder="请输入风神ID、姓名、电话号码" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">入职日期</label>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <input type="datetime-local" style="padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; width: 140px;">
-                                <span style="font-size: 12px; color: #666;">→</span>
-                                <input type="datetime-local" style="padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; width: 140px;">
-                            </div>
+                            <input type="text" id="filter-search" placeholder="请输入骑手ID、姓名" style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
                         </div>
                         <div style="display: flex; gap: 10px; align-items: flex-end;">
-                            <button class="btn btn-reset" style="font-size: 12px; padding: 6px 12px; height: 28px; padding-left: 24px; position: relative;">
+                            <button class="btn btn-reset" onclick="resetSettlementFilters()" style="font-size: 12px; padding: 6px 12px; height: 28px; padding-left: 24px; position: relative;">
                                 <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%);">↻</span>
                                 重置
                             </button>
-                            <button class="btn btn-search" style="font-size: 12px; padding: 6px 12px; height: 28px; padding-left: 24px; position: relative;">
+                            <button class="btn btn-search" onclick="searchSettlementData()" style="font-size: 12px; padding: 6px 12px; height: 28px; padding-left: 24px; position: relative;">
                                 <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%);">🔍</span>
                                 搜索
                             </button>
@@ -175,27 +174,25 @@
                     
                     <!-- 表格 -->
                     <div class="section">
-                        <table id="part-time-rider-table">
+                        <table id="settlement-table">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox"></th>
                                     <th>NO</th>
                                     <th>城市</th>
                                     <th>结算周期</th>
-                                    <th>本月是否结算</th>
+                                    <th>结算日期</th>
                                     <th>站点名称</th>
                                     <th>骑手ID</th>
                                     <th>骑手姓名</th>
-                                    <th>人员类别</th>
                                     <th>单价</th>
                                     <th>分类</th>
                                     <th>结算方案</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="settlement-tbody">
                                 <tr>
-                                    <td colspan="13" class="loading">
+                                    <td colspan="11" class="loading">
                                         <p>加载中...</p>
                                     </td>
                                 </tr>
@@ -203,45 +200,32 @@
                         </table>
                         
                         <!-- 分页控件 -->
-                        <div class="pagination" id="parttime-pagination" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
-                            <button onclick="changePartTimePage('prev')" id="parttime-prev-btn" disabled>上一页</button>
-                            <span id="parttime-page-info">第 1 页 / 共 1 页 (共 0 条)</span>
-                            <button onclick="changePartTimePage('next')" id="parttime-next-btn" disabled>下一页</button>
+                        <div class="pagination" id="pagination" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                            <button onclick="changePage('prev')" id="prev-btn" disabled>上一页</button>
+                            <span id="page-info">第 1 页 / 共 1 页 (共 0 条)</span>
+                            <button onclick="changePage('next')" id="next-btn" disabled>下一页</button>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
-        <footer class="footer">
-        </footer>
+        <footer class="footer"></footer>
     </div>
     <script src="js/index.js"></script>
     <style>
-        /* 兼职骑手列表页面样式 */
-        .rider-part-time {
+        .part-time-settlement {
             padding: 0;
         }
         
-        .rider-actions {
+        .settlement-actions {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            margin-top: 100px;
+            margin-top: 20px;
         }
         
-        .action-link {
-            color: #0066cc;
-            text-decoration: none;
-            margin-right: 10px;
-            font-size: 14px;
-        }
-        
-        .action-link:hover {
-            text-decoration: underline;
-        }
-        
-        #part-time-rider-table {
+        #settlement-table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
@@ -249,15 +233,15 @@
             border: 1px solid #e0e0e0;
         }
         
-        #part-time-rider-table th,
-        #part-time-rider-table td {
+        #settlement-table th,
+        #settlement-table td {
             padding: 10px;
             text-align: left;
             border: 1px solid #e0e0e0;
             white-space: nowrap;
         }
         
-        #part-time-rider-table th {
+        #settlement-table th {
             background-color: #f0f8ff;
             font-weight: bold;
             color: #333;
@@ -266,19 +250,40 @@
             z-index: 10;
         }
         
-        #part-time-rider-table tr:hover {
+        #settlement-table tr:hover {
             background-color: #f9f9f9;
             transition: background-color 0.2s ease;
         }
         
-        #part-time-rider-table tr {
+        #settlement-table tr {
             color: #333;
             transition: background-color 0.2s ease;
             background-color: white;
         }
         
-        #part-time-rider-table tr:nth-child(even) {
+        .pagination button {
+            padding: 6px 16px;
+            border: 1px solid #ddd;
             background-color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination span {
+            font-size: 13px;
+            color: #666;
         }
     </style>
 </body>

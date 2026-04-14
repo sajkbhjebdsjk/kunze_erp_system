@@ -66,7 +66,20 @@ def get_riders():
             query += " AND r.recruitment_channel = %s"
             params.append(recruitment_channel)
         
-        # 执行查询
+        # 执行查询（先获取总数）
+        count_query = f"SELECT COUNT(*) as total FROM ({query}) as t"
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()['total']
+        
+        # 添加分页参数
+        page = int(request.args.get('page', 1))
+        per_page = 10
+        offset = (page - 1) * per_page
+        
+        query += " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        
+        # 执行分页查询
         cursor.execute(query, params)
         riders = cursor.fetchall()
         
@@ -157,10 +170,18 @@ def get_riders():
         cursor.close()
         conn.close()
         
+        # 计算总页数
+        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
+        
         return jsonify({
             'success': True,
             'data': riders,
-            'total': len(riders)
+            'pagination': {
+                'current_page': page,
+                'per_page': per_page,
+                'total_count': total_count,
+                'total_pages': total_pages
+            }
         })
     except Exception as e:
         return jsonify({
@@ -1849,10 +1870,133 @@ def get_pending_exit():
         
         return jsonify({
             'success': True,
-            'stats': stats,
+            stats: stats,
             'data': pending_records
         })
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@rider_bp.route('/api/riders/part-time-settlement', methods=['GET'])
+def get_part_time_settlement():
+    """获取兼职结算列表（按天生成结算记录）"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        # 获取查询参数
+        city = request.args.get('city', 'all')
+        settlement_cycle = request.args.get('settlement_cycle', '')
+        station_name = request.args.get('station_name', '')
+        search = request.args.get('search', '')
+        
+        # 分页参数
+        page = int(request.args.get('page', 1))
+        per_page = 10
+        offset = (page - 1) * per_page
+        
+        # 查询基础：从riders表获取所有兼职骑手
+        query = """
+            SELECT r.rider_id, r.name, r.phone, r.station_name, 
+                   r.unit_price, r.settlement_cycle, r.work_nature, r.city,
+                   s.city_code as station_city,
+                   sp.name as salary_plan_name
+            FROM riders r
+            LEFT JOIN stations s ON r.station_name = s.station_name
+            LEFT JOIN salary_plans sp ON r.salary_plan_id = sp.id
+            WHERE r.work_nature = '兼职'
+        """
+        params = []
+        
+        # 添加筛选条件
+        if city != 'all':
+            query += " AND r.city = %s"
+            params.append(city)
+            
+        if settlement_cycle:
+            query += " AND r.settlement_cycle = %s"
+            params.append(settlement_cycle)
+            
+        if station_name:
+            query += " AND r.station_name = %s"
+            params.append(station_name)
+            
+        if search:
+            query += " AND (r.rider_id LIKE %s OR r.name LIKE %s)"
+            params.extend([f'%{search}%', f'%{search}%'])
+        
+        # 获取总数
+        count_query = f"SELECT COUNT(*) as total FROM ({query}) as t"
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()['total']
+        
+        # 获取分页数据
+        query += " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        
+        cursor.execute(query, params)
+        part_time_riders = cursor.fetchall()
+        
+        # 生成结算记录（每个骑手当月每天一条）
+        settlement_data = []
+        today = datetime.now()
+        current_month_start = today.replace(day=1).strftime('%Y-%m-%d')
+        current_month_end = today.strftime('%Y-%m-%d')
+        
+        for rider in part_time_riders:
+            unit_price = rider.get('unit_price') or 0
+            
+            # 生成当月每天的结算记录（简化逻辑：使用当前月份）
+            # 实际业务中应该根据入职日期和离职日期计算
+            try:
+                start_date = datetime.strptime(current_month_start, '%Y-%m-%d')
+                end_date = datetime.strptime(current_month_end, '%Y-%m-%d')
+                
+                # 只生成到今天为止的日期
+                if end_date > today:
+                    end_date = today
+                
+                current_date = start_date
+                while current_date <= end_date:
+                    settlement_record = {
+                        'city': rider.get('city') or rider.get('station_city') or '-',
+                        'settlement_cycle': rider.get('settlement_cycle') or '-',
+                        'settlement_date': current_date.strftime('%Y-%m-%d'),
+                        'station_name': rider.get('station_name') or '-',
+                        'rider_id': rider.get('rider_id') or '-',
+                        'name': rider.get('name') or '-',
+                        'unit_price': float(unit_price) if unit_price else 0,
+                        'work_nature': rider.get('work_nature') or '兼职',
+                        'salary_plan': rider.get('salary_plan_name') or rider.get('salary_plan_id') or '-'
+                    }
+                    settlement_data.append(settlement_record)
+                    current_date += timedelta(days=1)
+                    
+            except Exception as e:
+                print(f'[SETTLEMENT-ERROR] 生成结算记录失败: {e}')
+                continue
+        
+        # 计算总页数
+        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'data': settlement_data,
+            'pagination': {
+                'current_page': page,
+                'per_page': per_page,
+                'total_count': total_count,
+                'total_pages': total_pages
+            }
+        })
+    except Exception as e:
+        import traceback
+        print(f'[SETTLEMENT-FATAL] {e}\n{traceback.format_exc()}')
         return jsonify({
             'success': False,
             'error': str(e)

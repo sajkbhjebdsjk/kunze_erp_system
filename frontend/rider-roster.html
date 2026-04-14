@@ -245,6 +245,13 @@
                                 </tr>
                             </tbody>
                         </table>
+                        
+                        <!-- 分页控件 -->
+                        <div class="pagination" id="roster-pagination" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                            <button onclick="changeRosterPage('prev')" id="roster-prev-btn" disabled>上一页</button>
+                            <span id="roster-page-info">第 1 页 / 共 1 页 (共 0 条)</span>
+                            <button onclick="changeRosterPage('next')" id="roster-next-btn" disabled>下一页</button>
+                        </div>
                     </div>
                 </div>
             </main>
