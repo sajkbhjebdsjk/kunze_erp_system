@@ -66,24 +66,20 @@ def get_riders():
             query += " AND r.recruitment_channel = %s"
             params.append(recruitment_channel)
 
-        # 基础查询（不包含ORDER BY、LIMIT、OFFSET）
-        base_query = query
-
-        # 添加分页参数
-        page = int(request.args.get('page', 1))
-        per_page = 10
-        offset = (page - 1) * per_page
-
-        # 执行总数查询
-        count_query = f"SELECT COUNT(*) as total FROM ({base_query}) as base_t"
-        cursor.execute(count_query, params)
-        total_count = cursor.fetchone()['total']
-
-        # 执行分页数据查询
-        data_query = base_query + " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
-        data_params = params + [per_page, offset]
-        cursor.execute(data_query, data_params)
-        riders = cursor.fetchall()
+        # 执行查询（无分页，返回所有数据）
+        try:
+            data_query = query + " ORDER BY r.entry_date DESC LIMIT 1000"
+            cursor.execute(data_query, params)
+            riders = cursor.fetchall()
+        except Exception as e:
+            print(f'[RIDERS-ERROR] {e}')
+            print(f'[RIDERS-SQL] {data_query}')
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': f'查询失败: {str(e)}'
+            }), 500
         
         # 批量获取合同状态（优先从骑手合同签署表查询）
         id_cards = [r.get('id_card') for r in riders if r.get('id_card')]
@@ -171,19 +167,10 @@ def get_riders():
         
         cursor.close()
         conn.close()
-        
-        # 计算总页数
-        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-        
+
         return jsonify({
             'success': True,
-            'data': riders,
-            'pagination': {
-                'current_page': page,
-                'per_page': per_page,
-                'total_count': total_count,
-                'total_pages': total_pages
-            }
+            'data': riders
         })
     except Exception as e:
         return jsonify({
@@ -1894,11 +1881,6 @@ def get_part_time_settlement():
         start_date = request.args.get('start_date', '')
         end_date = request.args.get('end_date', '')
 
-        # 分页参数
-        page = int(request.args.get('page', 1))
-        per_page = 10
-        offset = (page - 1) * per_page
-
         # 查询基础：从riders表获取所有兼职骑手
         query = """
             SELECT r.rider_id, r.name, r.phone, r.station_name,
@@ -1912,7 +1894,7 @@ def get_part_time_settlement():
         """
         params = []
 
-        # 添加筛选条件（只保留站点、搜索、结算日期）
+        # 添加筛选条件（只保留站点、搜索、时间区间）
         if station_name:
             query += " AND r.station_name = %s"
             params.append(station_name)
@@ -1921,15 +1903,8 @@ def get_part_time_settlement():
             query += " AND (r.rider_id LIKE %s OR r.name LIKE %s)"
             params.extend([f'%{search}%', f'%{search}%'])
 
-        # 获取总数
-        count_query = f"SELECT COUNT(*) as total FROM ({query}) as t"
-        cursor.execute(count_query, params)
-        total_count = cursor.fetchone()['total']
-
-        # 获取分页数据
-        query += " ORDER BY r.entry_date DESC LIMIT %s OFFSET %s"
-        params.extend([per_page, offset])
-
+        # 执行查询（无分页，限制最多1000条）
+        query += " ORDER BY r.entry_date DESC LIMIT 1000"
         cursor.execute(query, params)
         part_time_riders = cursor.fetchall()
 
@@ -1938,15 +1913,6 @@ def get_part_time_settlement():
         today = datetime.now()
         current_month_start = today.replace(day=1).strftime('%Y-%m-%d')
         current_month_end = today.strftime('%Y-%m-%d')
-
-        # 如果指定了结算日期筛选，只生成该日期的数据
-        if settlement_date:
-            try:
-                filter_date = datetime.strptime(settlement_date, '%Y-%m-%d')
-                current_month_start = filter_date.strftime('%Y-%m-%d')
-                current_month_end = filter_date.strftime('%Y-%m-%d')
-            except:
-                pass
 
         for rider in part_time_riders:
             unit_price = rider.get('unit_price') or 0
@@ -1984,22 +1950,13 @@ def get_part_time_settlement():
             except Exception as e:
                 print(f'[SETTLEMENT-ERROR] 生成结算记录失败: {e}')
                 continue
-        
-        # 计算总页数
-        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-        
+
         cursor.close()
         conn.close()
-        
+
         return jsonify({
             'success': True,
-            'data': settlement_data,
-            'pagination': {
-                'current_page': page,
-                'per_page': per_page,
-                'total_count': total_count,
-                'total_pages': total_pages
-            }
+            'data': settlement_data
         })
     except Exception as e:
         import traceback

@@ -393,10 +393,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let rosterCurrentPage = 1;
     let rosterTotalPages = 1;
     
-    function loadRiderRosterData(filters = {}, page = 1) {
+    function loadRiderRosterData(filters = {}) {
         const riderTable = document.getElementById('rider-table');
         if (!riderTable) return;
-        
+
         const tbody = riderTable.querySelector('tbody');
         tbody.innerHTML = `
             <tr>
@@ -405,39 +405,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             </tr>
         `;
-        
+
         // 加载统计数据
         loadRiderStats();
-        
+
         // 获取当前选择的城市
         const selectedCity = filters.city || localStorage.getItem('selectedCity') || 'all';
-        
-        // 构建查询参数（包含分页参数）
+
+        // 构建查询参数（无分页）
         const queryParams = new URLSearchParams();
         queryParams.append('city', selectedCity);
-        queryParams.append('page', page);
         if (filters.organization) queryParams.append('organization', filters.organization);
         if (filters.department) queryParams.append('department', filters.department);
         if (filters.search) queryParams.append('search', filters.search);
         if (filters.startDate) queryParams.append('start_date', filters.startDate);
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
-        
+
         const queryString = queryParams.toString();
         const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
-        
+
         // 从API获取骑手数据
         fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     const riders = data.data;
-                    const pagination = data.pagination;
-                    
-                    // 更新分页状态
-                    rosterCurrentPage = pagination.current_page;
-                    rosterTotalPages = pagination.total_pages;
-                    updateRosterPagination(pagination);
-                    
+
                     tbody.innerHTML = '';
                     
                     riders.forEach((rider, index) => {
@@ -581,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let i = startPage; i <= endPage; i++) {
                 const li = document.createElement('li');
                 li.textContent = i;
-                li.onclick = () => loadRiderRosterData({}, i);
+                li.onclick = () => loadRiderRosterData({});
                 if (i === currentPage) {
                     li.classList.add('active');
                 }
@@ -600,17 +593,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 切换骑手花名册页面
     function changeRosterPage(direction) {
-        let newPage = rosterCurrentPage;
-
-        if (direction === 'prev' && rosterCurrentPage > 1) {
-            newPage = rosterCurrentPage - 1;
-        } else if (direction === 'next' && rosterCurrentPage < rosterTotalPages) {
-            newPage = rosterCurrentPage + 1;
-        }
-
-        if (newPage !== rosterCurrentPage) {
-            loadRiderRosterData({}, newPage);
-        }
+        // 分页功能已移除，此函数保留但不再执行分页操作
+        console.log('分页功能已移除');
     }
     
     // 绑定骑手操作事件
@@ -2693,10 +2677,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let partTimeCurrentPage = 1;
     let partTimeTotalPages = 1;
     
-    function loadPartTimeRiderData(filters = {}, page = 1) {
+    function loadPartTimeRiderData(filters = {}) {
         const partTimeTable = document.getElementById('part-time-rider-table');
         if (!partTimeTable) return;
-        
+
         const tbody = partTimeTable.querySelector('tbody');
         tbody.innerHTML = `
             <tr>
@@ -2705,36 +2689,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             </tr>
         `;
-        
+
         // 获取当前选择的城市
         const selectedCity = filters.city || localStorage.getItem('selectedCity') || 'hangzhou';
-        
-        // 构建查询参数（包含分页参数）
+
+        // 构建查询参数（无分页）
         const queryParams = new URLSearchParams();
         queryParams.append('city', selectedCity);
         queryParams.append('work_nature', '兼职');
-        queryParams.append('page', page);
         if (filters.station) queryParams.append('department', filters.station);
         if (filters.search) queryParams.append('search', filters.search);
         if (filters.startDate) queryParams.append('start_date', filters.startDate);
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
-        
+
         const queryString = queryParams.toString();
         const url = `${window.API_BASE_URL}/api/riders${queryString ? `?${queryString}` : ''}`;
-        
+
         // 从API获取骑手数据
         fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     const riders = data.data;
-                    const pagination = data.pagination;
-                    
-                    // 更新分页状态
-                    partTimeCurrentPage = pagination.current_page;
-                    partTimeTotalPages = pagination.total_pages;
-                    updatePartTimePagination(pagination);
-                    
+
                     tbody.innerHTML = '';
                     
                     riders.forEach((rider, index) => {
@@ -2826,7 +2803,7 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let i = startPage; i <= endPage; i++) {
                 const li = document.createElement('li');
                 li.textContent = i;
-                li.onclick = () => loadPartTimeRiderData({}, i);
+                li.onclick = () => loadPartTimeRiderData({});
                 if (i === currentPage) {
                     li.classList.add('active');
                 }
@@ -2845,17 +2822,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 切换兼职骑手列表页面
     function changePartTimePage(direction) {
-        let newPage = partTimeCurrentPage;
-
-        if (direction === 'prev' && partTimeCurrentPage > 1) {
-            newPage = partTimeCurrentPage - 1;
-        } else if (direction === 'next' && partTimeCurrentPage < partTimeTotalPages) {
-            newPage = partTimeCurrentPage + 1;
-        }
-
-        if (newPage !== partTimeCurrentPage) {
-            loadPartTimeRiderData({}, newPage);
-        }
+        // 分页功能已移除，此函数保留但不再执行分页操作
+        console.log('分页功能已移除');
     }
 
     // 绑定兼职骑手操作事件
@@ -4161,10 +4129,6 @@ function loadSettlementData(page = 1) {
         .then(data => {
             if (data.success) {
                 renderSettlementTable(data.data);
-                updatePagination(data.pagination);
-                settlementCurrentPage = data.pagination.current_page;
-                settlementTotalPages = data.pagination.total_pages;
-                settlementTotalCount = data.pagination.total_count;
             } else {
                 alert('加载失败: ' + (data.error || '未知错误'));
             }
